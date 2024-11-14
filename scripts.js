@@ -616,9 +616,10 @@ function updateMetricsCharts() {
 function createCharts(qualityCtx, tasksCtx, teams, qualityData, tasksData) {
     // مصفوفة ثابتة من الألوان
     const predefinedColors = [
-        '#FF6384', // أحمر فاتح
-        '#FFCE56', // أزرق
-        '#36A2EB', // أصفر
+        '#FFCE56',
+         // أحمر فاتح // أزرق
+        '#36A2EB',
+        '#FF6384', // أصفر
         '#4BC0C0', // فيروزي
         '#9966FF', // بنفسجي
         '#FF9F40', // برتقالي
