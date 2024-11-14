@@ -614,9 +614,22 @@ function updateMetricsCharts() {
 
 // دالة مساعدة لإنشاء الرسوم البيانية
 function createCharts(qualityCtx, tasksCtx, teams, qualityData, tasksData) {
-    const colors = teams.map((_, index) => 
-        `hsl(${(index * 360) / teams.length}, 70%, 50%)`
-    );
+    // مصفوفة ثابتة من الألوان
+    const predefinedColors = [
+        '#FF6384', // أحمر فاتح
+        '#FFCE56', // أزرق
+        '#36A2EB', // أصفر
+        '#4BC0C0', // فيروزي
+        '#9966FF', // بنفسجي
+        '#FF9F40', // برتقالي
+        '#00CC99', // أخضر زمردي
+        '#FF99CC', // وردي
+        '#99CCFF', // أزرق فاتح
+        '#FF99FF'  // وردي فاتح
+    ];
+
+    // استخدام الألوان المحددة مسبقاً مع التكرار إذا كان هناك فرق أكثر من الألوان
+    const colors = teams.map((_, index) => predefinedColors[index % predefinedColors.length]);
 
     const chartConfig = {
         type: 'bar',
