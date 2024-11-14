@@ -140,7 +140,7 @@ async function updateTable(team) {
         rowElement.innerHTML = `
             <td>${member.device}</td>
             <td>${member.email}</td>
-            <td>${member.name}${tasksEmoji}${qualityEmoji}</td>
+            <td><span style="display: inline-flex; align-items: center;">${member.name}<span style="margin-left: 4px">${tasksEmoji}${qualityEmoji}</span></span></td>
             <td>${member.qualityForAll} ${rankDisplay}</td>
             <td style="color: ${tasksColor};">${member.tasksCompleted}</td>
             <td style="color: ${qualityColor};">${member.quality}</td>
@@ -429,7 +429,7 @@ function calculateTeamStats(data) {
     return stats;
 }
 
-// دالة مساعدة لحساب متوسط المهام
+// دالة مساعدة ل��ساب متوسط المهام
 function calculateAverageTasks(data) {
     const activeMembers = data.filter(row => parseFloat(row[13]) > 0);
     const totalTasks = activeMembers.reduce((sum, row) => sum + parseFloat(row[13] || 0), 0);
