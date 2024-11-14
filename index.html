@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Performance</title>
+    <link rel="icon" href="360_F_518939699_8Zco4PagLxKxIFzWj7zYiZD6xSE9Ynb5.jpg" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <h1 class="site-title" data-text="Team Performance">Team Performance </h1>
+        <p class="header-subtitle">Real-time Analytics & Tracking Dashboard by  Mr:Ahmed Khaled</p>
+        
+        <div class="team-slider" id="teamSlider">
+            <div class="team-card">
+                <h3>Hi Reviwers</h3>
+                <!-- سيتم إضافة team-stats هنا تلقائياً بواسطة JavaScript -->
+            </div>
+            <!-- باقي البطاقات -->
+        </div>
+        
+        <nav class="tabs-nav">
+            <button class="tab-button active" data-tab="team-data">Team Data</button>
+            <button class="tab-button" data-tab="metrics">Team Metrics</button>
+        </nav>
+    </header>
+
+    <div class="main-content">
+        <div class="tabs-container">
+            <div id="team-data" class="tab-content active">
+                <table id="teamTable">
+                    <thead>
+                        <tr>
+                            <th>Device</th>
+                            <th>E-Mail</th>
+                            <th>Name</th>
+                            <th>Quality</th>
+                            <th>Tasks Completed Today</th>
+                            <th>Quality per Day</th>
+                            <th>Last Task</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teamTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="metrics" class="tab-content">
+                <div class="charts-grid">
+                    <h1>Average Quality</h1>
+                    <div class="chart-container">
+                        <canvas id="qualityComparisonChart"></canvas>
+                    </div>
+                    <h1>Average Tasks</h1>
+                    <div class="chart-container">
+                        <canvas id="tasksComparisonChart"></canvas>
+                    </div>
+                </div>
+                <div class="metrics-table-container">
+                    <table class="metrics-table">
+                        <thead>
+                            <tr>
+                                <th>Team</th>
+                                <th>Average Tasks</th>
+                                <th>Average Quality</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Will be filled dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-container hidden">
+        <div class="loading-stars">
+            <div class="star">★</div>
+            <div class="star">★</div>
+            <div class="star">★</div>
+            <div class="star">★</div>
+            <div class="star">★</div>
+        </div>
+        <div class="loading-text">
+            Loading<span class="dots">...</span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="scripts.js"></script>
+</body>
+</html>
