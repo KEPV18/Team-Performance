@@ -72,6 +72,13 @@ async function updateTable(team) {
     const teamTableBody = document.getElementById("teamTableBody");
     const loader = document.querySelector('.loading-container');
 
+    // Add checks for required elements
+    const topTeamText = document.getElementById("topTeamText");
+    const teamRanking = document.getElementById("teamRanking");
+    const topThreeTasks = document.getElementById("topThreeTasks");
+    const topThreeQuality = document.getElementById("topThreeQuality");
+    const leaderboard = document.getElementById("leaderboard");
+
     if (!selectedTeam) {
         if (teamTableBody) {
             teamTableBody.innerHTML = '<tr><td colspan="7">Please select a team.</td></tr>';
@@ -114,14 +121,16 @@ async function updateTable(team) {
             return qualityB - qualityA;
         });
 
-    // Find top performers (without minimum thresholds)
-    const topTasksPerson = currentTeamData.reduce((max, current) => 
-        (current.tasksCompleted > (max?.tasksCompleted || -1)) ? current : max
-    , null);
+    // Find top performers only if they have values greater than 0
+    const topTasksPerson = currentTeamData.reduce((max, current) => {
+        if (current.tasksCompleted <= 0) return max;
+        return (!max || current.tasksCompleted > max.tasksCompleted) ? current : max;
+    }, null);
 
-    const topQualityPerson = currentTeamData.reduce((max, current) => 
-        (current.quality > (max?.quality || -1)) ? current : max
-    , null);
+    const topQualityPerson = currentTeamData.reduce((max, current) => {
+        if (current.quality <= 0) return max;
+        return (!max || current.quality > max.quality) ? current : max;
+    }, null);
 
     // Add sorted data to the table
     currentTeamData.forEach((member, index) => {
@@ -129,9 +138,18 @@ async function updateTable(team) {
         const tasksColor = member.tasksCompleted < 60 ? 'red' : 'green';
         const qualityColor = member.quality < 75 ? 'red' : 'green';
 
-        // Add emojis for top performers without any threshold conditions
-        const tasksEmoji = (member.name === topTasksPerson.name) ? ' 🏆' : '';
-        const qualityEmoji = (member.name === topQualityPerson.name) ? ' ❤️' : '';
+        // Add emojis for top performers
+        let performanceEmojis = '';
+        let shouldShowBalloons = false;
+
+        if (topTasksPerson && member.name === topTasksPerson.name) {
+            performanceEmojis += ' 🏆';
+            shouldShowBalloons = true;
+        }
+        if (topQualityPerson && member.name === topQualityPerson.name) {
+            performanceEmojis += ' ❤️';
+            shouldShowBalloons = true;
+        }
 
         // Determine rank suffix
         const rankSuffix = (index + 1) === 1 ? 'st' : (index + 1) === 2 ? 'nd' : (index + 1) === 3 ? 'rd' : 'th';
@@ -140,7 +158,7 @@ async function updateTable(team) {
         rowElement.innerHTML = `
             <td>${member.device}</td>
             <td>${member.email}</td>
-            <td><span style="display: inline-flex; align-items: center;">${member.name}<span style="margin-left: 4px">${tasksEmoji}${qualityEmoji}</span></span></td>
+            <td><span style="display: inline-flex; align-items: center;">${member.name}<span style="margin-left: 4px">${performanceEmojis}</span></span></td>
             <td>${member.qualityForAll} ${rankDisplay}</td>
             <td style="color: ${tasksColor};">${member.tasksCompleted}</td>
             <td style="color: ${qualityColor};">${member.quality}</td>
@@ -153,8 +171,12 @@ async function updateTable(team) {
         rowElement.classList.add('fade-in');
         teamTableBody.appendChild(rowElement);
 
+        // Add animation with balloon effect
         setTimeout(() => {
             rowElement.classList.add('visible');
+            if (shouldShowBalloons) {
+                showRandomBalloons();
+            }
         }, index * 100);
     });
 
@@ -176,115 +198,110 @@ async function updateTable(team) {
     `;
     teamTableBody.appendChild(summaryRow);
 
-    calculateTeamPerformance();
-    calculateIndividualPerformance();
-    updateTopHeart();
-    showRandomBalloons();
-
-    // حذف الجزء القديم واستبداله بهذا
+    // Update stats only if elements exist
     const performanceStats = calculateTeamStats(trackingData);
     
-    // تحديث Top Team
+    // Update Top Team
     const topTeam = Object.entries(performanceStats)
         .sort((a, b) => b[1].averageQuality - a[1].averageQuality)[0];
-    document.getElementById("topTeamText").textContent = topTeam ? topTeam[0] : "N/A";
+    if (topTeamText) {
+        topTeamText.textContent = topTeam ? topTeam[0] : "N/A";
+    }
     
-    // تحديث Team Ranking
-    document.getElementById("teamRanking").textContent = 
-        `${selectedTeam}: ${performanceStats[selectedTeam]?.averageQuality.toFixed(2) || "N/A"}`;
+    // Update Team Ranking
+    if (teamRanking) {
+        teamRanking.textContent = 
+            `${selectedTeam}: ${performanceStats[selectedTeam]?.averageQuality.toFixed(2) || "N/A"}`;
+    }
 
-    // تحديث Top 3
-    const topTasksMembers = currentTeamData
-        .sort((a, b) => parseFloat(b.tasksCompleted) - parseFloat(a.tasksCompleted))
-        .slice(0, 3);
-    const topQualityMembers = currentTeamData
-        .sort((a, b) => parseFloat(b.quality) - parseFloat(a.quality))
-        .slice(0, 3);
+    // Update Top 3
+    if (topThreeTasks) {
+        topThreeTasks.textContent = 
+            topTasksMembers.map(m => m.name).join(", ") || "N/A";
+    }
+    if (topThreeQuality) {
+        topThreeQuality.textContent = 
+            topQualityMembers.map(m => m.name).join(", ") || "N/A";
+    }
 
-    document.getElementById("topThreeTasks").textContent = 
-        topTasksMembers.map(m => m.name).join(", ") || "N/A";
-    document.getElementById("topThreeQuality").textContent = 
-        topQualityMembers.map(m => m.name).join(", ") || "N/A";
+    // Only call these functions if the table exists
+    if (teamTableBody) {
+        calculateTeamPerformance();
+        calculateIndividualPerformance();
+        updateTopHeart();
+    }
 
     // Auto-refresh the table every minute to keep rankings updated
     setTimeout(updateTable, 300000);
 }
 
 function showRandomBalloons() {
-    const balloonCount = Math.floor(Math.random() * 26) + 15;
-    const balloonContainer = document.querySelectorAll('.balloon');
-    const symbols = ['🎈', '❤️', '🎉', '✨', '🎊', '🎁', '💪', '😎', '🏆', '🔥', '💯', '🍾', '🌟'];
+    const balloonCount = Math.floor(Math.random() * 21) + 30;
+    
+    // إزالة البالونات القديمة
+    const existingBalloons = document.querySelectorAll('.balloon');
+    existingBalloons.forEach(balloon => balloon.remove());
 
-    balloonContainer.forEach(balloon => {
-        balloon.style.opacity = '0';
-    });
+    const symbols = [
+        '🎈', '🎉', '✨', '🎊', '🏆', '⭐', '🌟',
+        '👑', '💫', '🎯', '💪', '✅', '🔥'
+    ];
+
+    let container = document.getElementById('balloons-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'balloons-container';
+        container.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999999;
+            overflow: hidden;
+            will-change: transform;
+        `;
+        document.body.appendChild(container);
+    }
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
 
     for (let i = 0; i < balloonCount; i++) {
-        const balloon = document.createElement('div');
-        balloon.className = 'balloon';
-        balloon.innerHTML = symbols[Math.floor(Math.random() * symbols.length)];
-        balloon.style.position = 'absolute';
-        balloon.style.left = Math.random() * 100 + 'vw';
-        balloon.style.top = Math.random() * 100 + 'vh';
-        balloon.style.opacity = '1';
-        balloon.style.transition = 'opacity 0.5s';
-        document.body.appendChild(balloon);
-
         setTimeout(() => {
-            balloon.style.transform = `translateY(-${Math.random() * 50 + 50}px)`;
-        }, 100);
+            const balloon = document.createElement('div');
+            balloon.className = 'balloon';
+            balloon.innerHTML = symbols[Math.floor(Math.random() * symbols.length)];
+            
+            const startX = Math.random() * (viewportWidth - 40) + 20;
+            const startY = viewportHeight + 10;
 
-        setTimeout(() => {
-            balloon.style.opacity = '0';
+            balloon.style.cssText = `
+                position: fixed;
+                left: ${startX}px;
+                top: ${startY}px;
+                font-size: ${Math.random() * 10 + 20}px;
+                opacity: 0;
+                transform: translate(-50%, -50%);
+                transition: all 0.3s ease-out;
+                z-index: 999999;
+                text-shadow: 0 0 5px rgba(0,0,0,0.3);
+            `;
+
+            container.appendChild(balloon);
+
+            requestAnimationFrame(() => {
+                balloon.style.opacity = '1';
+                balloon.style.top = `${Math.random() * (viewportHeight/2)}px`;
+                balloon.style.left = `${startX + (Math.random() - 0.5) * 50}px`;
+            });
+
             setTimeout(() => {
-                balloon.remove();
-            }, 500);
-        }, 5000);
-    }
-}
-
-function updateTopHeart() {
-    const teamTableBody = document.getElementById("teamTableBody");
-    const rows = teamTableBody.getElementsByTagName("tr");
-    
-    // تخزين أعلى قيم لكل فريق
-    const topPerformers = {
-        tasks: { value: 0, row: null },
-        quality: { value: 0, row: null }
-    };
-    
-    // البحث عن أعلى القيم
-    Array.from(rows).forEach(row => {
-        const tasks = parseFloat(row.cells[4].innerText) || 0;
-        const quality = parseFloat(row.cells[5].innerText) || 0;
-        
-        if (tasks > topPerformers.tasks.value) {
-            topPerformers.tasks.value = tasks;
-            topPerformers.tasks.row = row;
-        }
-        
-        if (quality > topPerformers.quality.value) {
-            topPerformers.quality.value = quality;
-            topPerformers.quality.row = row;
-        }
-    });
-    
-    // إزالة القلوب القديمة
-    document.querySelectorAll('.heart').forEach(heart => heart.remove());
-    
-    // إضافة القلوب الجديدة
-    if (topPerformers.tasks.row) {
-        const heartTasks = document.createElement('span');
-        heartTasks.className = 'heart';
-        heartTasks.innerHTML = '❤️';
-        topPerformers.tasks.row.cells[2].appendChild(heartTasks);
-    }
-    
-    if (topPerformers.quality.row && topPerformers.quality.row !== topPerformers.tasks.row) {
-        const heartQuality = document.createElement('span');
-        heartQuality.className = 'heart';
-        heartQuality.innerHTML = '❤️';
-        topPerformers.quality.row.cells[2].appendChild(heartQuality);
+                balloon.style.opacity = '0';
+                setTimeout(() => balloon.remove(), 300);
+            }, 4000);
+        }, i * 50);
     }
 }
 
@@ -345,7 +362,7 @@ function calculateTeamPerformance() {
 function updateTeamLeaderboard(performanceData) {
     const leaderboard = document.getElementById("leaderboard");
     if (!leaderboard) {
-        console.error("Leaderboard element not found.");
+        console.warn("Leaderboard element not found. Skipping leaderboard update.");
         return;
     }
     leaderboard.innerHTML = '';
@@ -371,19 +388,26 @@ function updateTeamLeaderboard(performanceData) {
 function calculateIndividualPerformance() {
     const teamTableBody = document.getElementById("teamTableBody");
     if (!teamTableBody) {
-        console.error("Team table body element not found.");
+        console.warn("Team table body element not found. Skipping performance calculation.");
         return;
     }
 
-    const rows = teamTableBody.getElementsByTagName("tr");
+    const rows = Array.from(teamTableBody.getElementsByTagName("tr"));
+    
+    // Skip the summary row at the end
+    const dataRows = rows.slice(0, -1);
 
     let highestQuality = 0;
     let highestQualityRow = null;
 
-    for (let row of rows) {
+    for (let row of dataRows) {
+        // Check if the row has enough cells
+        if (!row.cells || row.cells.length < 6) {
+            continue;
+        }
+
         const qualityCell = row.cells[5];
         if (!qualityCell) {
-            console.error("Quality cell not found in row.");
             continue;
         }
 
@@ -429,7 +453,7 @@ function calculateTeamStats(data) {
     return stats;
 }
 
-// دالة مساعدة ل��ساب متوسط المهام
+// دالة مساعدة لساب متوسط المهام
 function calculateAverageTasks(data) {
     const activeMembers = data.filter(row => parseFloat(row[13]) > 0);
     const totalTasks = activeMembers.reduce((sum, row) => sum + parseFloat(row[13] || 0), 0);
@@ -789,4 +813,23 @@ async function fetchData() {
         hideLoading();
     }
 }
+
+// تحسين أنماط CSS
+const style = document.createElement('style');
+style.textContent = `
+    .balloon {
+        user-select: none;
+        pointer-events: none;
+        transform-origin: center;
+        animation: floatSimple 2s ease-in-out infinite;
+        will-change: transform, opacity;
+        filter: drop-shadow(0 0 2px rgba(255,255,255,0.3));
+    }
+
+    @keyframes floatSimple {
+        0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+        50% { transform: translate(-50%, -50%) rotate(5deg); }
+    }
+`;
+document.head.appendChild(style);
 

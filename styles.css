@@ -94,7 +94,7 @@ table {
     background: var(--surface-color);
 }
 th, td {
-    border: 1px solid #ff69b4;
+    border: 1px solid #ffffff;
     padding: 12px;
     text-align: center;
     color: #ffffff;
@@ -270,7 +270,7 @@ td:nth-child(3) {
 }
 
 h1 {
-    background: linear-gradient(45deg, #ff69b4, #ff1493);
+    background: linear-gradient(45deg, #3768b1, #dba819);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -879,7 +879,7 @@ h1 {
 
 /* تنسيق النص */
 .loading-container {
-    color: #ff69b4;
+    color: #e08b1b;
     font-size: 1.2rem;
     font-weight: 500;
     letter-spacing: 1px;
