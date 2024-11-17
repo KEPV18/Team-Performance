@@ -1808,7 +1808,6 @@ input:focus, select:focus, textarea:focus {
 }
 
 #production-data th {
-    background: linear-gradient(45deg, var(--gradient-colors));
     color: white;
     font-weight: bold;
     text-transform: uppercase;
