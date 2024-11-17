@@ -8,6 +8,11 @@ let teamNames = new Set();
 let qualityChart = null;
 let tasksChart = null;
 
+let productionData = [];
+const PRODUCTION_SHEET_ID = '1LBz_Fn8T5I5n3e_UuqLSN8xYpnL1TBkLGTIjL1LF5QM';
+// تحديث المتغير الثابت من Form Responses 1 إلى MORNING
+const PRODUCTION_SHEET_NAME = 'MORNING';
+
 document.addEventListener('DOMContentLoaded', () => {
     initialize();
 });
@@ -23,6 +28,13 @@ async function fetchGoogleSheetData(sheetName, range) {
 
     try {
         const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}!${range}?key=${apiKey}`);
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Error fetching data:", errorData);
+            return [];
+        }
+
         const data = await response.json();
         
         if (!data || !data.values || !Array.isArray(data.values)) {
@@ -453,7 +465,7 @@ function calculateTeamStats(data) {
     return stats;
 }
 
-// دالة مساعدة لساب متوسط المهام
+// دالة مساعدة لساب متسط المهام
 function calculateAverageTasks(data) {
     const activeMembers = data.filter(row => parseFloat(row[13]) > 0);
     const totalTasks = activeMembers.reduce((sum, row) => sum + parseFloat(row[13] || 0), 0);
@@ -592,7 +604,7 @@ function updateMetricsCharts() {
     const qualityCtx = qualityCanvas.getContext('2d');
     const tasksCtx = tasksCanvas.getContext('2d');
     
-    // تدمير الرسوم البيانية القديمة إذا كانت موجودة
+    // تدمير ارسوم البيانية القديمة إذا كانت موجودة
     if (qualityChart) {
         qualityChart.destroy();
     }
@@ -832,4 +844,264 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+async function fetchProductionData() {
+    try {
+        showLoading();
+        const response = await fetch(`https://docs.google.com/spreadsheets/d/${PRODUCTION_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${PRODUCTION_SHEET_NAME}`);
+        const text = await response.text();
+        const data = JSON.parse(text.substring(47).slice(0, -2));
+        
+        // تحويل البيانات إلى تنسيق أكثر سهولة للاستخدام
+        productionData = data.table.rows.map(row => ({
+            name: row.c[0]?.v || '',
+            team: row.c[1]?.v || '',
+            email: row.c[2]?.v || '',
+            status: row.c[3]?.v || '',
+            taskCount: parseInt(row.c[4]?.v) || 0,
+            submittedCount: parseInt(row.c[5]?.v) || 0,
+            skippedCount: parseInt(row.c[6]?.v) || 0,
+            startedCount: parseInt(row.c[7]?.v) || 0,
+            date: row.c[8]?.f || row.c[8]?.v || ''
+        })).filter(row => row.name && row.team); // تصفية الصفوف الفارغة
+
+        updateProductionTable();
+        updateTeamTasksChart();
+    } catch (error) {
+        console.error('Error fetching production data:', error);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function updateProductionTable() {
+    const tbody = document.getElementById('productionTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    
+    // Sort productionData by taskCount in descending order
+    const sortedData = [...productionData].sort((a, b) => b.taskCount - a.taskCount);
+    
+    // Calculate totals directly from productionData
+    const totals = productionData.reduce((acc, row) => {
+        acc.taskCount += row.taskCount || 0;
+        acc.submittedCount += row.submittedCount || 0;
+        acc.skippedCount += row.skippedCount || 0;
+        if (row.taskCount > 1) {
+            acc.activeMembers++;
+        }
+        return acc;
+    }, {
+        taskCount: 0,
+        submittedCount: 0,
+        skippedCount: 0,
+        startedCount: 0,
+        activeMembers: 0
+    });
+
+    // Create table rows
+    sortedData.forEach((row, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${row.name || ''}</td>
+            <td>${row.team || ''}</td>
+            <td>${row.email || ''}</td>
+            <td>${row.status || ''}</td>
+            <td>${row.taskCount || ''}</td>
+            <td>${row.submittedCount || ''}</td>
+            <td>${row.skippedCount || ''}</td>
+            <td>${row.startedCount || ''}</td>
+            <td>${row.date || ''}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Update summary row
+    const summaryRow = document.createElement('tr');
+    summaryRow.classList.add('summary-row');
+    summaryRow.innerHTML = `
+        <td colspan="4" style="text-align: right; font-weight: bold;">
+            Totals (Active Members: ${totals.activeMembers})
+        </td>
+        <td style="font-weight: bold; background-color: rgba(255, 255, 255, 0.1);">
+            ${totals.taskCount}
+        </td>
+        <td style="font-weight: bold; background-color: rgba(255, 255, 255, 0.1);">
+            ${totals.submittedCount}
+        </td>
+        <td style="font-weight: bold; background-color: rgba(255, 255, 255, 0.1);">
+            ${totals.skippedCount}
+        </td>
+        <td style="font-weight: bold; background-color: rgba(255, 255, 255, 0.1);">
+            ${totals.startedCount}
+        </td>
+        <td></td>
+    `;
+    tbody.appendChild(summaryRow);
+}
+
+// تحدث دا حساب متوسط المهام لكل فريق
+function calculateTeamAverages() {
+    const teamStats = {};
+    
+    productionData.forEach(member => {
+        if (!teamStats[member.team]) {
+            teamStats[member.team] = {
+                totalSubmitted: 0,
+                totalTasks: 0,
+                activeMembers: 0,
+                members: []
+            };
+        }
+        
+        // اعتبار العضو نشطًا إذا كان لديه مهام مقدمة
+        if (member.submittedCount > 0) {
+            teamStats[member.team].totalSubmitted += member.submittedCount;
+            teamStats[member.team].totalTasks += member.taskCount;
+            teamStats[member.team].activeMembers++;
+            teamStats[member.team].members.push(member);
+        }
+    });
+
+    // حساب المتوسطات
+    Object.keys(teamStats).forEach(team => {
+        const stats = teamStats[team];
+        stats.averageSubmitted = stats.activeMembers > 0 
+            ? stats.totalSubmitted / stats.activeMembers 
+            : 0;
+        stats.averageTasks = stats.activeMembers > 0 
+            ? stats.totalTasks / stats.activeMembers 
+            : 0;
+    });
+
+    return teamStats;
+}
+
+// تحديث دالة تحديث الرسم البياني
+function updateTeamTasksChart() {
+    const ctx = document.getElementById('teamTasksChart');
+    if (!ctx) return;
+
+    // تجميع البيانات حسب الفريق
+    const teamStats = {};
+    
+    productionData.forEach(row => {
+        const team = row.team;
+        const taskCount = parseFloat(row.taskCount) || 0;
+        
+        if (!teamStats[team]) {
+            teamStats[team] = {
+                totalTasks: 0,
+                activeMembers: 0,
+                totalMembers: 0
+            };
+        }
+        
+        teamStats[team].totalMembers++;
+        
+        // اعتبار العضو نشطًا فقط إذا كان لديه تاسكات أكثر من صفر
+        if (taskCount > 0) {
+            teamStats[team].totalTasks += taskCount;
+            teamStats[team].activeMembers++;
+        }
+    });
+
+    // تحويل البيانات إلى مصفوفة وحساب المتوسطات
+    const teamData = Object.entries(teamStats).map(([team, stats]) => ({
+        team,
+        averageTasks: stats.activeMembers > 0 ? (stats.totalTasks / stats.activeMembers).toFixed(2) : '0.00',
+        activeMembers: stats.activeMembers,
+        totalMembers: stats.totalMembers
+    }));
+
+    // ترتيب الفرق حسب المتوسط
+    teamData.sort((a, b) => parseFloat(b.averageTasks) - parseFloat(a.averageTasks));
+
+    // تحديث الرسم البياني
+    const labels = teamData.map(item => item.team);
+    const data = teamData.map(item => parseFloat(item.averageTasks));
+
+    const teamColors = [
+        '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD',
+        '#D4A5A5', '#9E9E9E', '#58B19F', '#FFD93D', '#FF8A5B'
+    ];
+
+    if (window.teamTasksChart instanceof Chart) {
+        window.teamTasksChart.destroy();
+    }
+
+    window.teamTasksChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Average Tasks',
+                data: data,
+                backgroundColor: teamColors.slice(0, labels.length)
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: { color: '#ffffff' }
+                },
+                x: {
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: { color: '#ffffff' }
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+
+    // تحديث جدول المقاييس
+    updateTeamMetricsTable(teamData);
+}
+
+function updateTeamMetricsTable(teamData) {
+    const tbody = document.getElementById('teamMetricsBody');
+    if (!tbody) {
+        console.error('Team metrics table body not found');
+        return;
+    }
+
+    tbody.innerHTML = '';
+
+    teamData.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${item.team}</td>
+            <td>${item.averageTasks}</td>
+            <td style="color: var(--primary-color); font-weight: bold;">
+                ${item.activeMembers} / ${item.totalMembers}
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// تحديث event listener للتأكد من تحميل البيانات عند تبديل التاب
+document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const tabId = this.dataset.tab;
+            if (tabId === 'production-data') {
+                fetchProductionData();
+            }
+        });
+    });
+    
+    // تحميل البيانات مباشرة إذا كان تاب Production Data نشطًا
+    if (document.querySelector('[data-tab="production-data"]').classList.contains('active')) {
+        fetchProductionData();
+    }
+});
 

@@ -915,129 +915,49 @@ h1 {
 
 .metrics-table {
     width: 100%;
+    border-collapse: collapse;
     margin-top: 20px;
-    border-collapse: collapse;
-    background: #2d2d2d;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.metrics-table th {
-    color: white;
-    padding: 15px;
-    text-align: left;
-}
-
-.metrics-table td {
-    padding: 12px 15px;
-    border-bottom: 1px solid rgba(255, 105, 180, 0.2);
-}
-
-.metrics-table tr:hover {
-    background: #3d3d3d;
-}
-
-/* Legend Styles */
-.chart-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-top: 15px;
-    padding: 10px;
-    background: #2d2d2d;
-    border-radius: 5px;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.legend-color {
-    width: 15px;
-    height: 15px;
-    border-radius: 3px;
-}
-
-/* Add these new styles */
-.charts-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-    margin: 20px;
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.chart-container {
-    background: #2d2d2d;
-    border-radius: 8px;
-    padding: 20px;
-    height: 300px;
-    width: 100%;
-    position: relative;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-}
-
-.metrics-table-container {
-    background: #2d2d2d;
-    border-radius: 8px;
-    padding: 20px;
-    margin: 20px auto;
-    width: 100%;
-    max-width: 1200px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.metrics-table {
-    width: 100%;
-    border-collapse: collapse;
+    background: var(--surface-color);
 }
 
 .metrics-table th,
 .metrics-table td {
     padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    border: 1px solid var(--border-color);
+    display: table-cell !important;
 }
 
 .metrics-table th {
-    background-color: rgba(255, 105, 180, 0.1);
-    color: #ffffff;
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9em;
+}
+
+.metrics-table td:nth-child(3) {
+    display: table-cell !important;
+    color: var(--primary-color);
     font-weight: bold;
 }
 
-.metrics-table tr:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-}
-
-#metrics.tab-content.active {
-    display: block;
+.metrics-table-container {
     width: 100%;
-    padding: 20px;
+    max-width: 1200px;
+    margin: 20px auto;
+    overflow-x: auto;
 }
 
 @media (max-width: 768px) {
-    .charts-grid {
-        margin: 10px;
-    }
-    
-    .chart-container {
-        height: 250px;
-        padding: 15px;
-    }
-    
     .metrics-table-container {
         margin: 10px;
-        padding: 15px;
+        padding: 0;
     }
     
     .metrics-table th,
     .metrics-table td {
-        padding: 8px 10px;
+        padding: 8px;
         font-size: 14px;
     }
 }
@@ -1869,4 +1789,218 @@ input:focus, select:focus, textarea:focus {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--hover-color);
+}
+
+#production-data table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: var(--card-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#production-data th,
+#production-data td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#production-data th {
+    background: linear-gradient(45deg, var(--gradient-colors));
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9em;
+}
+
+#production-data tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+#production-data tr:nth-child(1) {
+    background-color: rgba(255, 215, 0, 0.1); /* Gold for first place */
+}
+
+#production-data tr:nth-child(2) {
+    background-color: rgba(192, 192, 192, 0.1); /* Silver for second place */
+}
+
+#production-data tr:nth-child(3) {
+    background-color: rgba(205, 127, 50, 0.1); /* Bronze for third place */
+}
+
+#production-data .charts-grid {
+    margin-top: 40px;
+    padding: 20px;
+    background: var(--surface-color);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#production-data .metrics-table-container {
+    margin-top: 20px;
+}
+
+#production-data .metrics-table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+#production-data .metrics-table th,
+#production-data .metrics-table td {
+    padding: 12px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+#production-data .metrics-table th {
+    background: var(--primary-color);
+    color: white;
+}
+
+#teamTasksChart {
+    background: var(--surface-color);
+    padding: 10px;
+    border-radius: 8px;
+}
+
+/* Remove box styles from the production data section */
+#production-data .charts-grid,
+#production-data .metrics-table-container {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Ensure different colors for each team in the chart */
+.chart-container {
+    /* No changes needed here, handled in JS */
+}
+
+/* إخفاء عمود Team وتنسيق الأسماء */
+#production-data table td:nth-child(3) {
+    display: none;
+}
+
+#production-data table th:nth-child(3) {
+    display: none;
+}
+
+#production-data table td:nth-child(2) {
+    color: #ffd700; /* لون ذهبي للأسماء */
+    font-weight: bold;
+}
+
+/* إزالة الصناديق الزائدة */
+#production-data .charts-grid,
+#production-data .metrics-table-container {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* تحسين مظهر الرسم البياني والجدول */
+#teamTasksChart {
+    background: var(--surface-color);
+    padding: 10px;
+    border-radius: 8px;
+}
+
+/* تحديث تنسيق جدول المقاييس */
+.metrics-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: var(--surface-color);
+}
+
+.metrics-table th,
+.metrics-table td {
+    padding: 12px 15px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    display: table-cell !important;
+}
+
+.metrics-table th:nth-child(3),
+.metrics-table td:nth-child(3) {
+    display: table-cell !important;
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+/* تنسيق حاوية الجدول */
+.metrics-table-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 20px auto;
+    overflow-x: auto;
+}
+
+/* تحسين مظهر رؤوس الأعمدة */
+.metrics-table th {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9em;
+}
+
+/* تحسين مظهر الصفوف عند التحويم */
+.metrics-table tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* تنسيق خاص للشاشات الصغيرة */
+@media (max-width: 768px) {
+    .metrics-table-container {
+        margin: 10px;
+        padding: 0;
+    }
+    
+    .metrics-table th,
+    .metrics-table td {
+        padding: 8px;
+        font-size: 14px;
+    }
+}
+
+.summary-row {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-top: 2px solid var(--primary-color);
+}
+
+.summary-row td {
+    color: var(--primary-color) !important;
+    text-align: center !important;
+}
+
+/* تنسيق خاص لخلايا صف المجاميع */
+.summary-row td:first-child {
+    text-align: left !important;
+    width: auto;
+}
+
+/* تنسيق خاص لخلية Active Members */
+.summary-row td.members-cell {
+    text-align: right !important;
+    padding-right: 15px;
+}
+
+/* تنسيق خاص لخلايا المجاميع */
+.summary-row td.total-cell {
+    font-weight: bold;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* تأكيد عرض جميع الخلايا في صف المجاميع */
+#production-data .summary-row td {
+    display: table-cell !important;
 }

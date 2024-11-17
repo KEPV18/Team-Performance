@@ -24,6 +24,7 @@
         <nav class="tabs-nav">
             <button class="tab-button active" data-tab="team-data">Team Data</button>
             <button class="tab-button" data-tab="metrics">Team Metrics</button>
+            <button class="tab-button" data-tab="production-data">Production Data</button>
         </nav>
     </header>
 
@@ -71,6 +72,48 @@
                             <!-- Will be filled dynamically -->
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <div id="production-data" class="tab-content">
+                <table id="productionTable">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Name</th>
+                            <th>Team</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Task Count</th>
+                            <th>Submitted Count</th>
+                            <th>Skipped Count</th>
+                            <th>Started Count</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productionTableBody">
+                    </tbody>
+                </table>
+
+                <div class="charts-grid">
+                    <h1>Team Task Count Average</h1>
+                    <div class="chart-container">
+                        <canvas id="teamTasksChart"></canvas>
+                    </div>
+                    <div class="metrics-table-container">
+                        <table class="metrics-table">
+                            <thead>
+                                <tr>
+                                    <th>Team</th>
+                                    <th>Average Tasks</th>
+                                    <th>Active Members</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teamMetricsBody">
+                                <!-- Will be filled dynamically by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
