@@ -2004,3 +2004,103 @@ input:focus, select:focus, textarea:focus {
 #production-data .summary-row td {
     display: table-cell !important;
 }
+
+/* تحسينات خاصة لـ Production Data على الموبايل */
+@media (max-width: 768px) {
+    #production-data table {
+        /* تحسين عرض الجدول */
+        font-size: 14px;
+        margin: 10px 0;
+        width: 100%;
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #production-data th,
+    #production-data td {
+        /* تحسين حجم الخلايا */
+        padding: 8px 10px;
+        min-width: 100px; /* ضمان عرض أدنى للخلايا */
+        white-space: nowrap; /* منع التفاف النص */
+    }
+
+    /* تثبيت العمود الأول */
+    #production-data td:first-child,
+    #production-data th:first-child {
+        position: sticky;
+        left: 0;
+        background: var(--surface-color);
+        z-index: 1;
+    }
+
+    /* تحسين قراءة الصفوف */
+    #production-data tr:nth-child(even) {
+        background-color: rgba(255, 255, 255, 0.03);
+    }
+
+    /* تحسين عرض الأرقام */
+    #production-data td:not(:first-child):not(:nth-child(2)) {
+        text-align: right;
+        font-family: monospace;
+    }
+
+    /* تحسين عرض الأسماء */
+    #production-data td:nth-child(2) {
+        min-width: 120px;
+        font-weight: bold;
+    }
+
+    /* تحسين صف المجاميع */
+    #production-data .summary-row td {
+        background-color: var(--primary-color);
+        color: white !important;
+        font-weight: bold;
+    }
+
+    /* إضافة مؤشر للتمرير الأفقي */
+    #production-data::after {
+        content: '←  التمرير للمزيد  →';
+        display: block;
+        text-align: center;
+        padding: 10px;
+        color: var(--text-secondary);
+        font-size: 12px;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(255,255,255,0.1) 50%, 
+            transparent 100%);
+    }
+
+    /* تحسين عرض الرسوم البيانية */
+    #teamTasksChart {
+        height: 300px !important;
+        margin: 20px 0;
+    }
+
+    /* تحسين حاوية الجداول */
+    .metrics-table-container {
+        margin: 10px 0;
+        padding: 0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+}
+
+/* تحسينات إضافية للشاشات الصغيرة جداً */
+@media (max-width: 480px) {
+    #production-data table {
+        font-size: 12px;
+    }
+
+    #production-data th,
+    #production-data td {
+        padding: 6px 8px;
+        min-width: 80px;
+    }
+
+    /* تقليل حجم العناوين */
+    #production-data th {
+        font-size: 0.8em;
+    }
+}
