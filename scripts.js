@@ -1012,6 +1012,7 @@ function updateTeamTasksChart() {
     const teamData = Object.entries(teamStats).map(([team, stats]) => ({
         team,
         averageTasks: stats.activeMembers > 0 ? (stats.totalTasks / stats.activeMembers).toFixed(2) : '0.00',
+        totalTasks: stats.totalTasks,
         activeMembers: stats.activeMembers,
         totalMembers: stats.totalMembers
     }));
@@ -1079,6 +1080,9 @@ function updateTeamMetricsTable(teamData) {
         row.innerHTML = `
             <td>${item.team}</td>
             <td>${item.averageTasks}</td>
+            <td style="color: var(--accent-color); font-weight: bold;">
+                ${item.totalTasks}
+            </td>
             <td style="color: var(--primary-color); font-weight: bold;">
                 ${item.activeMembers} / ${item.totalMembers}
             </td>

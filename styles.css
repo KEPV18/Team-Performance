@@ -1243,7 +1243,7 @@ h1 {
     }
 }
 
-/* تحسين إضافي للشاشات الصغيرة جداً */
+/* تحسين إضفي للشاشات الصغيرة جداً */
 @media (max-width: 480px) {
     .site-title {
         font-size: 1.5rem;
@@ -1737,7 +1737,7 @@ input:focus, select:focus, textarea:focus {
     color: var(--hover-color);
 }
 
-/* تحديث تنسيق التأثيرات الحركية */
+/* حديث تنسيق التأثيرات الحركية */
 @keyframes glow {
     0%, 100% {
         box-shadow: 0 0 5px var(--primary-color);
@@ -1913,7 +1913,7 @@ input:focus, select:focus, textarea:focus {
     border-radius: 8px;
 }
 
-/* تحديث تنسيق جدول المقاييس */
+/* تحديث تنسيق جدل المقاييس */
 .metrics-table {
     width: 100%;
     border-collapse: collapse;
@@ -1953,7 +1953,7 @@ input:focus, select:focus, textarea:focus {
     font-size: 0.9em;
 }
 
-/* تحسين مظهر الصفوف عند التحويم */
+/* تحسين مظهر الصفف عند التحويم */
 .metrics-table tr:hover {
     background-color: rgba(255, 255, 255, 0.05);
 }
@@ -2008,7 +2008,6 @@ input:focus, select:focus, textarea:focus {
 /* تحسينات خاصة لـ Production Data على الموبايل */
 @media (max-width: 768px) {
     #production-data table {
-        /* تحسين عرض الجدول */
         font-size: 14px;
         margin: 10px 0;
         width: 100%;
@@ -2019,15 +2018,14 @@ input:focus, select:focus, textarea:focus {
 
     #production-data th,
     #production-data td {
-        /* تحسين حجم الخلايا */
         padding: 8px 10px;
-        min-width: 100px; /* ضمان عرض أدنى للخلايا */
-        white-space: nowrap; /* منع التفاف النص */
+        min-width: 100px;
+        white-space: nowrap;
     }
 
-    /* تثبيت العمود الأول */
-    #production-data td:first-child,
-    #production-data th:first-child {
+    /* تثبيت العمود الثاني */
+    #production-data td:nth-child(2),
+    #production-data th:nth-child(2) {
         position: sticky;
         left: 0;
         background: var(--surface-color);
@@ -2099,8 +2097,90 @@ input:focus, select:focus, textarea:focus {
         min-width: 80px;
     }
 
-    /* تقليل حجم العناوين */
     #production-data th {
         font-size: 0.8em;
+    }
+}
+
+/* تثبيت العمود الثاني */
+#teamData td:nth-child(2),
+#teamData th:nth-child(2) {
+    position: sticky;
+    left: 0;
+    background: var(--surface-color);
+    z-index: 1;
+}
+
+/* تنسيق خاص لرأس العمود الثاني */
+#teamData th:nth-child(2) {
+    background: linear-gradient(45deg, var(--gradient-colors));
+    z-index: 2;
+}
+
+/* تأكد من أن العمود الأول لم يعد ثابتاً */
+#teamData td:first-child,
+#teamData th:first-child {
+    position: static;
+}
+
+@media (max-width: 768px) {
+    #teamData {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #teamData table {
+        width: 100%;
+        border-collapse: collapse;
+        display: block;
+        overflow-x: auto;
+    }
+
+    #teamData th,
+    #teamData td {
+        padding: 8px 10px;
+        min-width: 100px;
+        white-space: nowrap;
+    }
+
+    /* تثبيت العمود الثاني */
+    #teamData td:nth-child(2),
+    #teamData th:nth-child(2) {
+        position: sticky;
+        left: 0;
+        background: var(--surface-color);
+        z-index: 1;
+    }
+
+    /* تحسين قراءة الصفوف */
+    #teamData tr:nth-child(even) {
+        background-color: rgba(255, 255, 255, 0.03);
+    }
+
+    /* تحسين عرض الأرقام */
+    #teamData td:not(:first-child):not(:nth-child(2)) {
+        text-align: right;
+        font-family: monospace;
+    }
+
+    /* تحسين عرض الأسماء */
+    #teamData td:nth-child(2) {
+        min-width: 120px;
+        font-weight: bold;
+    }
+
+    /* إضافة مؤشر للتمرير الأفقي */
+    #teamData::after {
+        content: '←  التمرير للمزيد  →';
+        display: block;
+        text-align: center;
+        padding: 10px;
+        color: var(--text-secondary);
+        font-size: 12px;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(255,255,255,0.1) 50%, 
+            transparent 100%);
     }
 }
