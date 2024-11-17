@@ -1025,7 +1025,7 @@ function updateTeamTasksChart() {
     const data = teamData.map(item => parseFloat(item.averageTasks));
 
     const teamColors = [
-        '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD',
+        '#FF6B6B','#45B7D1', '#96CEB4', '#FFEEAD',
         '#D4A5A5', '#9E9E9E', '#58B19F', '#FFD93D', '#FF8A5B'
     ];
 
