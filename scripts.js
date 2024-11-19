@@ -88,13 +88,6 @@ async function updateTable(team) {
     const teamTableBody = document.getElementById("teamTableBody");
     const loader = document.querySelector('.loading-container');
 
-    // Add checks for required elements
-    const topTeamText = document.getElementById("topTeamText");
-    const teamRanking = document.getElementById("teamRanking");
-    const topThreeTasks = document.getElementById("topThreeTasks");
-    const topThreeQuality = document.getElementById("topThreeQuality");
-    const leaderboard = document.getElementById("leaderboard");
-
     if (!selectedTeam) {
         if (teamTableBody) {
             teamTableBody.innerHTML = '<tr><td colspan="7">Please select a team.</td></tr>';
@@ -167,17 +160,26 @@ async function updateTable(team) {
             shouldShowBalloons = true;
         }
 
-        // Determine rank suffix
-        const rankSuffix = (index + 1) === 1 ? 'st' : (index + 1) === 2 ? 'nd' : (index + 1) === 3 ? 'rd' : 'th';
-        const rankDisplay = `<span style="color: #daa520;">${index + 1}${rankSuffix} ⭐</span>`;
+        // New medal system with ranking text for top 3
+        let rankDisplay = '';
+        if (index === 0) {
+            rankDisplay = '<span style="color: #FFD700;">🥇 1st</span>';
+            shouldShowBalloons = true;
+        } else if (index === 1) {
+            rankDisplay = '<span style="color: #C0C0C0;">🥈 2nd</span>';
+            shouldShowBalloons = true;
+        } else if (index === 2) {
+            rankDisplay = '<span style="color: #CD7F32;">🥉 3rd</span>';
+            shouldShowBalloons = true;
+        }
 
         rowElement.innerHTML = `
             <td>${member.device}</td>
             <td>${member.email}</td>
             <td><span style="display: inline-flex; align-items: center;">${member.name}<span style="margin-left: 4px">${performanceEmojis}</span></span></td>
-            <td>${member.qualityForAll} ${rankDisplay}</td>
+            <td>${member.qualityForAll}% ${rankDisplay}</td>
             <td style="color: ${tasksColor};">${member.tasksCompleted}</td>
-            <td style="color: ${qualityColor};">${member.quality}</td>
+            <td style="color: ${qualityColor};">${member.quality}%</td>
             <td>
                 ${member.lastTaskLink ? `<button onclick="copyToClipboard('${member.lastTaskLink}')" class="copy-button">
                     <i class="fas fa-copy"></i> Copy Last Task
@@ -217,7 +219,12 @@ async function updateTable(team) {
     // Update stats only if elements exist
     const performanceStats = calculateTeamStats(trackingData);
     
-    // Update Top Team
+    // Update Top Team - Add null checks
+    const topTeamText = document.getElementById('topTeamText');
+    const teamRanking = document.getElementById('teamRanking');
+    const topThreeTasks = document.getElementById('topThreeTasks');
+    const topThreeQuality = document.getElementById('topThreeQuality');
+
     const topTeam = Object.entries(performanceStats)
         .sort((a, b) => b[1].averageQuality - a[1].averageQuality)[0];
     if (topTeamText) {
@@ -230,25 +237,53 @@ async function updateTable(team) {
             `${selectedTeam}: ${performanceStats[selectedTeam]?.averageQuality.toFixed(2) || "N/A"}`;
     }
 
+    // Get all teams' data for comparison
+    const allTeamsData = [];
+    for (const teamName of teamNames) {
+        const teamData = trackingData.filter(row => row[1] === teamName)
+            .map(row => ({
+                device: row[0] || "N/A",
+                team: row[1] || "N/A",
+                email: row[2] || "N/A",
+                name: row[5] || "N/A",
+                tasksCompleted: parseFloat(row[13]) || 0,
+                quality: parseFloat(row[12]) || 0,
+                qualityForAll: parseFloat(row[7]) || 0,
+                lastTaskLink: row[24] || ""
+            }))
+            .filter(member => member.tasksCompleted > 0 || member.quality > 0);
+        allTeamsData.push(...teamData);
+    }
+
+    // Sort by tasks and quality to get top 3 across all teams
+    const topTasksAcrossTeams = allTeamsData
+        .sort((a, b) => b.tasksCompleted - a.tasksCompleted)
+        .slice(0, 3);
+
+    const topQualityAcrossTeams = allTeamsData
+        .sort((a, b) => b.quality - a.quality)
+        .slice(0, 3);
+
     // Update Top 3
     if (topThreeTasks) {
         topThreeTasks.textContent = 
-            topTasksMembers.map(m => m.name).join(", ") || "N/A";
+            topTasksAcrossTeams.map(m => m.name).join(", ") || "N/A";
     }
     if (topThreeQuality) {
         topThreeQuality.textContent = 
-            topQualityMembers.map(m => m.name).join(", ") || "N/A";
+            topQualityAcrossTeams.map(m => m.name).join(", ") || "N/A";
     }
 
     // Only call these functions if the table exists
     if (teamTableBody) {
         calculateTeamPerformance();
         calculateIndividualPerformance();
-        updateTopHeart();
     }
 
     // Auto-refresh the table every minute to keep rankings updated
     setTimeout(updateTable, 300000);
+
+    updateTopPerformers(currentTeamData);
 }
 
 function showRandomBalloons() {
@@ -654,7 +689,7 @@ function updateMetricsCharts() {
 
 // دالة مساعدة لإنشاء الرسوم البيانية
 function createCharts(qualityCtx, tasksCtx, teams, qualityData, tasksData) {
-    // مصفوفة ثابتة ��ن الألوان
+    // مصفوفة ثابتة ن الألوان
     const predefinedColors = [
         '#FFCE56',
          // أحمر فاتح // أزرق
@@ -759,6 +794,7 @@ function initializeTeams() {
 // Update initialize function
 async function initialize() {
     await populateTeamSelect();
+    await updateTopPerformersOnLoad();
     initializeTeamSlider();
     initializeTabs();
     updateTable();
@@ -891,7 +927,7 @@ async function updateProductionTable() {
     const sortedData = [...productionData].sort((a, b) => {
         const accuracyA = parseFloat(accuracyMap[a.email.toLowerCase()] || '0');
         const accuracyB = parseFloat(accuracyMap[b.email.toLowerCase()] || '0');
-        return accuracyB - accuracyA; // Sort in descending order
+        return accuracyB - accuracyA;
     });
     
     // Calculate totals
@@ -899,6 +935,7 @@ async function updateProductionTable() {
         acc.taskCount += row.taskCount || 0;
         acc.submittedCount += row.submittedCount || 0;
         acc.skippedCount += row.skippedCount || 0;
+        acc.startedCount += row.startedCount || 0;
         if (row.taskCount > 1) {
             acc.activeMembers++;
         }
@@ -911,13 +948,12 @@ async function updateProductionTable() {
         activeMembers: 0
     });
 
-    // Create table rows
+    // Create table rows with proper column alignment
     sortedData.forEach((row, index) => {
         const accuracy = accuracyMap[row.email.toLowerCase()] || 'N/A';
         const accuracyValue = accuracy !== 'N/A' ? parseFloat(accuracy) : 0;
         const accuracyColor = accuracyValue < 75 ? 'red' : 'green';
         
-        // Add rank emoji/symbol based on position
         let rankDisplay = '';
         if (index === 0) rankDisplay = '🥇';
         else if (index === 1) rankDisplay = '🥈';
@@ -925,41 +961,40 @@ async function updateProductionTable() {
         
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${index + 1} ${rankDisplay}</td>
-            <td>${row.name || ''}</td>
-            <td>${row.team || ''}</td>
-            <td>${row.email || ''}</td>
-            <td>${row.status || ''}</td>
-            <td style="color: ${accuracyColor}; font-weight: bold;">
+            <td style="text-align: center">${index + 1} ${rankDisplay}</td>
+            <td style="text-align: left">${row.name || ''}</td>
+            <td style="text-align: left">${row.team || ''}</td>
+            <td style="text-align: left">${row.email || ''}</td>
+            <td style="text-align: center">${row.status || ''}</td>
+            <td style="text-align: center; color: ${accuracyColor}; font-weight: bold;">
                 ${accuracy}${accuracy !== 'N/A' ? '%' : ''}
             </td>
-            <td>${row.taskCount || ''}</td>
-            <td>${row.submittedCount || ''}</td>
-            <td>${row.skippedCount || ''}</td>
-            <td>${row.startedCount || ''}</td>
-            <td>${row.date || ''}</td>
+            <td style="text-align: center">${row.taskCount || '0'}</td>
+            <td style="text-align: center">${row.submittedCount || '0'}</td>
+            <td style="text-align: center">${row.skippedCount || '0'}</td>
+            <td style="text-align: center">${row.startedCount || '0'}</td>
+            <td style="text-align: center">${row.date || ''}</td>
         `;
         tbody.appendChild(tr);
     });
 
-    // Update summary row
+    // Update summary row with proper column alignment and positioning
     const summaryRow = document.createElement('tr');
     summaryRow.classList.add('summary-row');
     summaryRow.innerHTML = `
         <td colspan="5" style="text-align: right; font-weight: bold;">
             Totals (Active Members: ${totals.activeMembers})
         </td>
-        <td></td>
-        <td style="font-weight: bold; background-color: rgba(255, 255, 255, 0.1);">
+        <td style="text-align: center; font-weight: bold; background-color: rgba(255, 255, 255, 0.1);">
             ${totals.taskCount}
         </td>
-        <td style="font-weight: bold; background-color: rgba(255, 255, 255, 0.1);">
+        <td style="text-align: center; font-weight: bold; background-color: rgba(255, 255, 255, 0.1);">
             ${totals.submittedCount}
         </td>
-        <td style="font-weight: bold; background-color: rgba(255, 255, 255, 0.1);">
+        <td style="text-align: center; font-weight: bold; background-color: rgba(255, 255, 255, 0.1);">
             ${totals.skippedCount}
         </td>
-        <td style="font-weight: bold; background-color: rgba(255, 255, 255, 0.1);">
+        <td style="text-align: center; font-weight: bold; background-color: rgba(255, 255, 255, 0.1);">
             ${totals.startedCount}
         </td>
         <td></td>
@@ -981,7 +1016,7 @@ function calculateTeamAverages() {
             };
         }
         
-        // اعتبار العضو نشطًا إذا كان لديه مهام مقدمة
+        // اعتبار العضو ن��طًا إذا كان لديه مهام مقدمة
         if (member.submittedCount > 0) {
             teamStats[member.team].totalSubmitted += member.submittedCount;
             teamStats[member.team].totalTasks += member.taskCount;
@@ -1155,5 +1190,135 @@ async function fetchAccuracyData() {
         console.error('Error fetching accuracy data:', error);
         return {};
     }
+}
+
+function updateTopPerformers(data) {
+    // Get all teams' data for both tasks and quality comparison
+    const allTeamsData = [];
+    Array.from(teamNames).forEach(teamName => {
+        const teamData = trackingData.filter(row => row[1] === teamName)
+            .map(row => ({
+                name: row[5] || "N/A",
+                team: row[1] || "N/A",
+                tasksCompleted: parseFloat(row[13]) || 0,
+                quality: parseFloat(row[12]) || 0
+            }))
+            .filter(member => member.tasksCompleted > 0 || member.quality > 0);
+        allTeamsData.push(...teamData);
+    });
+
+    // ترتيب حسب التاسكات (من جميع الفرق)
+    const topTasks = allTeamsData
+        .sort((a, b) => parseFloat(b.tasksCompleted) - parseFloat(a.tasksCompleted))
+        .slice(0, 3);
+
+    // ترتيب حسب الجودة (من جميع الفرق)
+    const topQuality = allTeamsData
+        .sort((a, b) => parseFloat(b.quality) - parseFloat(a.quality))
+        .slice(0, 3);
+
+    // تحديث ميداليات التاسكات
+    const tasksElements = document.querySelectorAll('.medals-section.tasks .medal');
+    topTasks.forEach((member, index) => {
+        if (tasksElements[index]) {
+            const nameEl = tasksElements[index].querySelector('.name');
+            const valueEl = tasksElements[index].querySelector('.value');
+            if (nameEl && valueEl) {
+                nameEl.textContent = member.name;
+                valueEl.textContent = `${member.tasksCompleted} tasks`;
+            }
+        }
+    });
+
+    // تحديث ميداليات الجودة
+    const qualityElements = document.querySelectorAll('.medals-section.quality .medal');
+    topQuality.forEach((member, index) => {
+        if (qualityElements[index]) {
+            const nameEl = qualityElements[index].querySelector('.name');
+            const valueEl = qualityElements[index].querySelector('.value');
+            if (nameEl && valueEl) {
+                nameEl.textContent = member.name;
+                valueEl.textContent = `${member.quality}%`;
+            }
+        }
+    });
+}
+
+// Add this new function to update top performers independently
+async function updateTopPerformersOnLoad() {
+    try {
+        // Fetch data if not already loaded
+        if (!trackingData) {
+            trackingData = await fetchGoogleSheetData("tracking(M)", "A1:Z1000");
+        }
+
+        // Get all teams' data for both tasks and quality comparison
+        const allTeamsData = [];
+        Array.from(teamNames).forEach(teamName => {
+            const teamData = trackingData.filter(row => row[1] === teamName)
+                .map(row => ({
+                    name: row[5] || "N/A",
+                    team: row[1] || "N/A",
+                    tasksCompleted: parseFloat(row[13]) || 0,
+                    quality: parseFloat(row[12]) || 0
+                }))
+                .filter(member => member.tasksCompleted > 0 || member.quality > 0);
+            allTeamsData.push(...teamData);
+        });
+
+        // Sort by tasks and quality to get top 3 across all teams
+        const topTasks = allTeamsData
+            .sort((a, b) => b.tasksCompleted - a.tasksCompleted)
+            .slice(0, 3);
+
+        const topQuality = allTeamsData
+            .sort((a, b) => b.quality - a.quality)
+            .slice(0, 3);
+
+        // Update medals
+        updateMedals(topTasks, topQuality);
+
+        // Update text displays if they exist
+        const topThreeTasks = document.getElementById('topThreeTasks');
+        const topThreeQuality = document.getElementById('topThreeQuality');
+
+        if (topThreeTasks) {
+            topThreeTasks.textContent = topTasks.map(m => m.name).join(", ") || "N/A";
+        }
+        if (topThreeQuality) {
+            topThreeQuality.textContent = topQuality.map(m => m.name).join(", ") || "N/A";
+        }
+    } catch (error) {
+        console.error('Error updating top performers:', error);
+    }
+}
+
+// Helper function to update medals
+function updateMedals(topTasks, topQuality) {
+    // Update tasks medals
+    const tasksElements = document.querySelectorAll('.medals-section.tasks .medal');
+    topTasks.forEach((member, index) => {
+        if (tasksElements[index]) {
+            const nameEl = tasksElements[index].querySelector('.name');
+            const valueEl = tasksElements[index].querySelector('.value');
+            if (nameEl && valueEl) {
+                nameEl.textContent = member.name;
+                valueEl.textContent = `${member.tasksCompleted} tasks`;
+            }
+        }
+    });
+
+    // Update quality medals
+    const qualityElements = document.querySelectorAll('.medals-section.quality .medal');
+    topQuality.forEach((member, index) => {
+        if (qualityElements[index]) {
+            const nameEl = qualityElements[index].querySelector('.name');
+            const valueEl = qualityElements[index].querySelector('.value');
+            if (nameEl && valueEl) {
+                nameEl.textContent = member.name;
+                valueEl.textContent = `${member.quality}%`;
+            }
+        }
+    });
 }
 
