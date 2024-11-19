@@ -287,7 +287,7 @@ async function updateTable(team) {
 }
 
 function showRandomBalloons() {
-    const balloonCount = Math.floor(Math.random() * 21) + 30;
+    const balloonCount = Math.floor(Math.random() * 21) + 20;
     
     // إزالة البالونات القديمة
     const existingBalloons = document.querySelectorAll('.balloon');
