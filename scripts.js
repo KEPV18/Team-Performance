@@ -13,6 +13,10 @@ const PRODUCTION_SHEET_ID = '1LBz_Fn8T5I5n3e_UuqLSN8xYpnL1TBkLGTIjL1LF5QM';
 // تحديث المتغير الثابت من Form Responses 1 إلى MORNING
 const PRODUCTION_SHEET_NAME = 'MORNING';
 
+// Add new constants
+const QUALITY_SHEET_ID = '18QXl65W2CwC-TBLDL4h1dxjiu6H-0tJAAbdCJWxL0Hk';
+const QUALITY_SHEET_NAME = 'Overall Quality';
+
 document.addEventListener('DOMContentLoaded', () => {
     initialize();
 });
@@ -650,7 +654,7 @@ function updateMetricsCharts() {
 
 // دالة مساعدة لإنشاء الرسوم البيانية
 function createCharts(qualityCtx, tasksCtx, teams, qualityData, tasksData) {
-    // مصفوفة ثابتة من الألوان
+    // مصفوفة ثابتة ��ن الألوان
     const predefinedColors = [
         '#FFCE56',
          // أحمر فاتح // أزرق
@@ -880,10 +884,17 @@ async function updateProductionTable() {
 
     tbody.innerHTML = '';
     
-    // Sort productionData by taskCount in descending order
-    const sortedData = [...productionData].sort((a, b) => b.taskCount - a.taskCount);
+    // Fetch accuracy data
+    const accuracyMap = await fetchAccuracyData();
     
-    // Calculate totals directly from productionData
+    // Sort productionData by accuracy instead of taskCount
+    const sortedData = [...productionData].sort((a, b) => {
+        const accuracyA = parseFloat(accuracyMap[a.email.toLowerCase()] || '0');
+        const accuracyB = parseFloat(accuracyMap[b.email.toLowerCase()] || '0');
+        return accuracyB - accuracyA; // Sort in descending order
+    });
+    
+    // Calculate totals
     const totals = productionData.reduce((acc, row) => {
         acc.taskCount += row.taskCount || 0;
         acc.submittedCount += row.submittedCount || 0;
@@ -902,13 +913,26 @@ async function updateProductionTable() {
 
     // Create table rows
     sortedData.forEach((row, index) => {
+        const accuracy = accuracyMap[row.email.toLowerCase()] || 'N/A';
+        const accuracyValue = accuracy !== 'N/A' ? parseFloat(accuracy) : 0;
+        const accuracyColor = accuracyValue < 75 ? 'red' : 'green';
+        
+        // Add rank emoji/symbol based on position
+        let rankDisplay = '';
+        if (index === 0) rankDisplay = '🥇';
+        else if (index === 1) rankDisplay = '🥈';
+        else if (index === 2) rankDisplay = '🥉';
+        
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${index + 1}</td>
+            <td>${index + 1} ${rankDisplay}</td>
             <td>${row.name || ''}</td>
             <td>${row.team || ''}</td>
             <td>${row.email || ''}</td>
             <td>${row.status || ''}</td>
+            <td style="color: ${accuracyColor}; font-weight: bold;">
+                ${accuracy}${accuracy !== 'N/A' ? '%' : ''}
+            </td>
             <td>${row.taskCount || ''}</td>
             <td>${row.submittedCount || ''}</td>
             <td>${row.skippedCount || ''}</td>
@@ -922,9 +946,10 @@ async function updateProductionTable() {
     const summaryRow = document.createElement('tr');
     summaryRow.classList.add('summary-row');
     summaryRow.innerHTML = `
-        <td colspan="4" style="text-align: right; font-weight: bold;">
+        <td colspan="5" style="text-align: right; font-weight: bold;">
             Totals (Active Members: ${totals.activeMembers})
         </td>
+        <td></td>
         <td style="font-weight: bold; background-color: rgba(255, 255, 255, 0.1);">
             ${totals.taskCount}
         </td>
@@ -1108,4 +1133,27 @@ document.addEventListener('DOMContentLoaded', function() {
         fetchProductionData();
     }
 });
+
+// Update the fetchAccuracyData function
+async function fetchAccuracyData() {
+    try {
+        const response = await fetch(
+            `https://sheets.googleapis.com/v4/spreadsheets/${QUALITY_SHEET_ID}/values/${QUALITY_SHEET_NAME}!A:I?key=${apiKey}`
+        );
+        const data = await response.json();
+        if (!data.values) return {};
+
+        // Create a map of email to accuracy
+        const accuracyMap = {};
+        data.values.forEach(row => {
+            if (row[4] && row[8]) { // Email is in column E (index 4), Accuracy in column I (index 8)
+                accuracyMap[row[4].toLowerCase()] = row[8]; // Store accuracy value
+            }
+        });
+        return accuracyMap;
+    } catch (error) {
+        console.error('Error fetching accuracy data:', error);
+        return {};
+    }
+}
 
