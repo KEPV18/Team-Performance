@@ -1182,7 +1182,7 @@ async function fetchAccuracyData() {
         const accuracyMap = {};
         data.values.forEach(row => {
             if (row[4] && row[8]) { // Email is in column E (index 4), Accuracy in column I (index 8)
-                accuracyMap[row[4].toLowerCase()] = row[8]; // Store accuracy value
+                accuracyMap[row[4].toLowerCase()] = row[10]; // Store accuracy value
             }
         });
         return accuracyMap;
