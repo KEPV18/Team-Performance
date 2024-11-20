@@ -14,7 +14,7 @@ const PRODUCTION_SHEET_ID = '1LBz_Fn8T5I5n3e_UuqLSN8xYpnL1TBkLGTIjL1LF5QM';
 const PRODUCTION_SHEET_NAME = 'MORNING';
 
 // Add new constants
-const QUALITY_SHEET_ID = '18QXl65W2CwC-TBLDL4h1dxjiu6H-0tJAAbdCJWxL0Hk';
+const QUALITY_SHEET_ID = '137kQKHlGVJaditi2Tw6tMNz_as1wnXGl2meY3yt9gHk';
 const QUALITY_SHEET_NAME = 'Overall Quality';
 
 document.addEventListener('DOMContentLoaded', () => {
