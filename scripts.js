@@ -923,9 +923,8 @@ async function updateProductionTable() {
     // Fetch accuracy data
     const accuracyMap = await fetchAccuracyData();
     
-    // Sort productionData by accuracy instead of taskCount
+    // Sort productionData by taskCount (descending order)
     const sortedData = [...productionData].sort((a, b) => b.taskCount - a.taskCount);
-
     
     // Calculate totals
     const totals = productionData.reduce((acc, row) => {
@@ -998,6 +997,7 @@ async function updateProductionTable() {
     `;
     tbody.appendChild(summaryRow);
 }
+
 
 // تحدث دا حساب متوسط المهام لكل فريق
 function calculateTeamAverages() {
