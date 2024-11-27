@@ -924,11 +924,8 @@ async function updateProductionTable() {
     const accuracyMap = await fetchAccuracyData();
     
     // Sort productionData by accuracy instead of taskCount
-    const sortedData = [...productionData].sort((a, b) => {
-        const accuracyA = parseFloat(accuracyMap[a.email.toLowerCase()] || '0');
-        const accuracyB = parseFloat(accuracyMap[b.email.toLowerCase()] || '0');
-        return accuracyB - accuracyA;
-    });
+    const sortedData = [...productionData].sort((a, b) => b.taskCount - a.taskCount);
+
     
     // Calculate totals
     const totals = productionData.reduce((acc, row) => {
