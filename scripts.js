@@ -14,8 +14,8 @@ const PRODUCTION_SHEET_ID = '1LBz_Fn8T5I5n3e_UuqLSN8xYpnL1TBkLGTIjL1LF5QM';
 const PRODUCTION_SHEET_NAME = 'MORNING';
 
 // Add new constants
-const QUALITY_SHEET_ID = '137kQKHlGVJaditi2Tw6tMNz_as1wnXGl2meY3yt9gHk';
-const QUALITY_SHEET_NAME = 'Overall Quality';
+const QUALITY_SHEET_ID = '14JdMNnhvCYmEVxRrnQitz5sjYQenh1pgcrE9Aw_pKR8';
+const QUALITY_SHEET_NAME = 'MORNING';
 
 document.addEventListener('DOMContentLoaded', () => {
     initialize();
@@ -1178,8 +1178,8 @@ async function fetchAccuracyData() {
         // Create a map of email to accuracy
         const accuracyMap = {};
         data.values.forEach(row => {
-            if (row[4] && row[10]) { // Email is in column E (index 4), Accuracy in column I (index 10)
-                accuracyMap[row[4].toLowerCase()] = row[10]; // Store accuracy value
+            if (row[1] && row[2]) { // Email is in column E (index 4), Accuracy in column I (index 10)
+                accuracyMap[row[1].toLowerCase()] = row[2]; // Store accuracy value
             }
         });
         return accuracyMap;
