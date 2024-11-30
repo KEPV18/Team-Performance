@@ -14,8 +14,8 @@ const PRODUCTION_SHEET_ID = '1LBz_Fn8T5I5n3e_UuqLSN8xYpnL1TBkLGTIjL1LF5QM';
 const PRODUCTION_SHEET_NAME = 'MORNING';
 
 // Add new constants
-const QUALITY_SHEET_ID = '14JdMNnhvCYmEVxRrnQitz5sjYQenh1pgcrE9Aw_pKR8';
-const QUALITY_SHEET_NAME = 'MORNING';
+const QUALITY_SHEET_ID = '18QXl65W2CwC-TBLDL4h1dxjiu6H-0tJAAbdCJWxL0Hk';
+const QUALITY_SHEET_NAME = 'Overall Quality';
 
 document.addEventListener('DOMContentLoaded', () => {
     initialize();
@@ -922,8 +922,12 @@ async function updateProductionTable() {
     // Fetch accuracy data
     const accuracyMap = await fetchAccuracyData();
 
-    // Sort productionData by taskCount (descending order)
-    const sortedData = [...productionData].sort((a, b) => b.taskCount - a.taskCount);
+    // Sort productionData by accuracy instead of taskCount
+    const sortedData = [...productionData].sort((a, b) => {
+        const accuracyA = parseFloat(accuracyMap[a.email.toLowerCase()] || '0');
+        const accuracyB = parseFloat(accuracyMap[b.email.toLowerCase()] || '0');
+        return accuracyB - accuracyA;
+    });
 
     // Calculate totals
     const totals = productionData.reduce((acc, row) => {
@@ -996,7 +1000,6 @@ async function updateProductionTable() {
     `;
     tbody.appendChild(summaryRow);
 }
-
 
 // تحدث دا حساب متوسط المهام لكل فريق
 function calculateTeamAverages() {
@@ -1174,14 +1177,19 @@ async function fetchAccuracyData() {
         const data = await response.json();
         if (!data.values) return {};
 
-// Create a map of email to accuracy
-const accuracyMap = {};
-data.values.forEach(row => {
-    if (row[1] && row[2]) { // Email is in column B (index 1), Accuracy in column C (index 2)
-        accuracyMap[row[1].toLowerCase()] = row[2]; // Store accuracy value
+        // Create a map of email to accuracy
+        const accuracyMap = {};
+        data.values.forEach(row => {
+            if (row[4] && row[8]) { // Email is in column E (index 4), Accuracy in column I (index 8)
+                accuracyMap[row[4].toLowerCase()] = row[8]; // Store accuracy value
+            }
+        });
+        return accuracyMap;
+    } catch (error) {
+        console.error('Error fetching accuracy data:', error);
+        return {};
     }
-});
-return accuracyMap;
+}
 
 function updateTopPerformers(data) {
     // Get all teams' data for both tasks and quality comparison
@@ -1312,3 +1320,4 @@ function updateMedals(topTasks, topQuality) {
         }
     });
 }
+~
