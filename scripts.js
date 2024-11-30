@@ -14,8 +14,8 @@ const PRODUCTION_SHEET_ID = '1LBz_Fn8T5I5n3e_UuqLSN8xYpnL1TBkLGTIjL1LF5QM';
 const PRODUCTION_SHEET_NAME = 'MORNING';
 
 // Add new constants
-const QUALITY_SHEET_ID = '14JdMNnhvCYmEVxRrnQitz5sjYQenh1pgcrE9Aw_pKR8';
-const QUALITY_SHEET_NAME = 'MORNING';
+const QUALITY_SHEET_ID = '137kQKHlGVJaditi2Tw6tMNz_as1wnXGl2meY3yt9gHk';
+const QUALITY_SHEET_NAME = 'Overall Quality';
 
 document.addEventListener('DOMContentLoaded', () => {
     initialize();
@@ -918,13 +918,13 @@ async function updateProductionTable() {
     if (!tbody) return;
 
     tbody.innerHTML = '';
-    
+
     // Fetch accuracy data
     const accuracyMap = await fetchAccuracyData();
-    
-    // Sort productionData by taskCount (descending order)
+
+    // Sort productionData by accuracy instead of taskCount
     const sortedData = [...productionData].sort((a, b) => b.taskCount - a.taskCount);
-    
+
     // Calculate totals
     const totals = productionData.reduce((acc, row) => {
         acc.taskCount += row.taskCount || 0;
@@ -948,12 +948,12 @@ async function updateProductionTable() {
         const accuracy = accuracyMap[row.email.toLowerCase()] || 'N/A';
         const accuracyValue = accuracy !== 'N/A' ? parseFloat(accuracy) : 0;
         const accuracyColor = accuracyValue < 75 ? 'red' : 'green';
-        
+
         let rankDisplay = '';
         if (index === 0) rankDisplay = '🥇';
         else if (index === 1) rankDisplay = '🥈';
         else if (index === 2) rankDisplay = '🥉';
-        
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td style="text-align: center">${index + 1} ${rankDisplay}</td>
@@ -996,7 +996,6 @@ async function updateProductionTable() {
     `;
     tbody.appendChild(summaryRow);
 }
-
 
 // تحدث دا حساب متوسط المهام لكل فريق
 function calculateTeamAverages() {
@@ -1174,14 +1173,19 @@ async function fetchAccuracyData() {
         const data = await response.json();
         if (!data.values) return {};
 
-// Create a map of email to accuracy
-const accuracyMap = {};
-data.values.forEach(row => {
-    if (row[1] && row[2]) { // Email is in column B (index 1), Accuracy in column C (index 2)
-        accuracyMap[row[1].toLowerCase()] = row[2]; // Store accuracy value
+        // Create a map of email to accuracy
+        const accuracyMap = {};
+        data.values.forEach(row => {
+            if (row[4] && row[10]) { // Email is in column E (index 4), Accuracy in column I (index 10)
+                accuracyMap[row[4].toLowerCase()] = row[10]; // Store accuracy value
+            }
+        });
+        return accuracyMap;
+    } catch (error) {
+        console.error('Error fetching accuracy data:', error);
+        return {};
     }
-});
-return accuracyMap;
+}
 
 function updateTopPerformers(data) {
     // Get all teams' data for both tasks and quality comparison
@@ -1312,3 +1316,4 @@ function updateMedals(topTasks, topQuality) {
         }
     });
 }
+~
