@@ -1174,13 +1174,13 @@ async function fetchAccuracyData() {
         if (!data.values) return {};
 
         // Create a map of email to accuracy
-        const accuracyMap = {};
-        data.values.forEach(row => {
-            if (row[4] && row[10]) { // Email is in column E (index 4), Accuracy in column I (index 10)
-                accuracyMap[row[4].toLowerCase()] = row[10]; // Store accuracy value
-            }
-        });
-        return accuracyMap;
+    const accuracyMap = {};
+data.values.forEach(row => {
+    if (row[1] && row[2]) { // Email is in column B (index 1), Accuracy in column C (index 2)
+        accuracyMap[row[1].toLowerCase()] = row[2]; // Store accuracy value
+    }
+});
+return accuracyMap;
     } catch (error) {
         console.error('Error fetching accuracy data:', error);
         return {};
