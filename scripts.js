@@ -1316,4 +1316,3 @@ function updateMedals(topTasks, topQuality) {
         }
     });
 }
-~
