@@ -922,7 +922,7 @@ async function updateProductionTable() {
     // Fetch accuracy data
     const accuracyMap = await fetchAccuracyData();
 
-    // Sort productionData by accuracy instead of taskCount
+    // Sort productionData by taskCount (descending order)
     const sortedData = [...productionData].sort((a, b) => b.taskCount - a.taskCount);
 
     // Calculate totals
@@ -996,6 +996,7 @@ async function updateProductionTable() {
     `;
     tbody.appendChild(summaryRow);
 }
+
 
 // تحدث دا حساب متوسط المهام لكل فريق
 function calculateTeamAverages() {
@@ -1173,19 +1174,14 @@ async function fetchAccuracyData() {
         const data = await response.json();
         if (!data.values) return {};
 
-        // Create a map of email to accuracy
-    const accuracyMap = {};
+// Create a map of email to accuracy
+const accuracyMap = {};
 data.values.forEach(row => {
     if (row[1] && row[2]) { // Email is in column B (index 1), Accuracy in column C (index 2)
         accuracyMap[row[1].toLowerCase()] = row[2]; // Store accuracy value
     }
 });
 return accuracyMap;
-    } catch (error) {
-        console.error('Error fetching accuracy data:', error);
-        return {};
-    }
-}
 
 function updateTopPerformers(data) {
     // Get all teams' data for both tasks and quality comparison
