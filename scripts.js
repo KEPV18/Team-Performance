@@ -607,7 +607,7 @@ function initializeTabs() {
             tabButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
 
-            // إخفاء جميع المحتويات
+            // إخفء جميع المحتويات
             tabContents.forEach(content => {
                 content.style.display = 'none';
                 content.classList.remove('active');
@@ -802,7 +802,7 @@ async function initialize() {
 initialize();
 
 document.addEventListener('DOMContentLoaded', function() {
-    // الحصول على بيانات الجدول
+    // الحول على بيانات الجدول
     const table = document.querySelector('table');
     const teamData = {};
     
@@ -877,6 +877,7 @@ style.textContent = `
         will-change: transform, opacity;
         filter: drop-shadow(0 0 2px rgba(255,255,255,0.3));
     }
+
     @keyframes floatSimple {
         0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
         50% { transform: translate(-50%, -50%) rotate(5deg); }
@@ -884,6 +885,7 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// دالة لجلب بيانات الإنتاج
 async function fetchProductionData() {
     try {
         showLoading();
@@ -897,14 +899,17 @@ async function fetchProductionData() {
             team: row.c[1]?.v || '',
             email: row.c[2]?.v || '',
             status: row.c[3]?.v || '',
-            taskCount: parseInt(row.c[4]?.v) || 0,
-            submittedCount: parseInt(row.c[5]?.v) || 0,
-            skippedCount: parseInt(row.c[6]?.v) || 0,
-            startedCount: parseInt(row.c[7]?.v) || 0,
-            date: row.c[8]?.f || row.c[8]?.v || ''
+            accuracy: row.c[4]?.v || '', // تأكد من أن الدقة هنا
+            taskCount: parseInt(row.c[5]?.v) || 0,
+            submittedCount: parseInt(row.c[6]?.v) || 0,
+            skippedCount: parseInt(row.c[7]?.v) || 0,
+            startedCount: parseInt(row.c[8]?.v) || 0,
+            date: row.c[9]?.f || row.c[9]?.v || ''
         })).filter(row => row.name && row.team); // تصفية الصفوف الفارغة
 
-        updateProductionTable();
+        console.log(productionData); // طباعة البيانات للتحقق منها
+
+        updateProductionTable(); // Update the table with all data
         updateTeamTasksChart();
     } catch (error) {
         console.error('Error fetching production data:', error);
@@ -913,45 +918,40 @@ async function fetchProductionData() {
     }
 }
 
-async function updateProductionTable() {
+// تعديل دالة تحديث الجدول لتصفية البيانات حسب الفريق
+async function updateProductionTable(selectedTeam = null) {
     const tbody = document.getElementById('productionTableBody');
     if (!tbody) return;
 
     tbody.innerHTML = '';
-    
+
+    // تصفية البيانات حسب الفريق المحدد
+    const filteredData = selectedTeam ? productionData.filter(member => member.team === selectedTeam) : productionData;
+
     // Fetch accuracy data
     const accuracyMap = await fetchAccuracyData();
-    
-    // Sort productionData by accuracy instead of taskCount
-    const sortedData = [...productionData].sort((a, b) => {
-        const accuracyA = parseFloat(accuracyMap[a.email.toLowerCase()] || '0');
-        const accuracyB = parseFloat(accuracyMap[b.email.toLowerCase()] || '0');
-        return accuracyB - accuracyA;
-    });
-    
-    // Calculate totals
-    const totals = productionData.reduce((acc, row) => {
-        acc.taskCount += row.taskCount || 0;
-        acc.submittedCount += row.submittedCount || 0;
-        acc.skippedCount += row.skippedCount || 0;
-        acc.startedCount += row.startedCount || 0;
-        if (row.taskCount > 1) {
-            acc.activeMembers++;
-        }
-        return acc;
-    }, {
-        taskCount: 0,
-        submittedCount: 0,
-        skippedCount: 0,
-        startedCount: 0,
-        activeMembers: 0
+
+    // تقسيم البيانات إلى مجموعتين: مع أكيروسي وبدون أكيروسي
+    const withAccuracy = filteredData.filter(member => accuracyMap[member.email.toLowerCase()] && accuracyMap[member.email.toLowerCase()] !== 'N/A');
+    const withoutAccuracy = filteredData.filter(member => !(accuracyMap[member.email.toLowerCase()] && accuracyMap[member.email.toLowerCase()] !== 'N/A'));
+
+    // ترتيب الأشخاص الذين لديهم أكيروسي
+    const sortedWithAccuracy = withAccuracy.sort((a, b) => {
+        const accuracyA = parseFloat(accuracyMap[a.email.toLowerCase()]) || 0;
+        const accuracyB = parseFloat(accuracyMap[b.email.toLowerCase()]) || 0;
+        return accuracyB - accuracyA; // ترتيب تنازلي
     });
 
-    // Create table rows with proper column alignment
+    // ترتيب الأشخاص الذين ليس لديهم أكيروسي بناءً على عدد المهام
+    const sortedWithoutAccuracy = withoutAccuracy.sort((a, b) => (b.taskCount || 0) - (a.taskCount || 0));
+
+    // دمج القائمتين
+    const sortedData = [...sortedWithAccuracy, ...sortedWithoutAccuracy];
+
+    // إنشاء صفوف الجدول
     sortedData.forEach((row, index) => {
-        const accuracy = accuracyMap[row.email.toLowerCase()] || 'N/A';
-        const accuracyValue = accuracy !== 'N/A' ? parseFloat(accuracy) : 0;
-        const accuracyColor = accuracyValue < 75 ? 'red' : 'green';
+        const accuracy = accuracyMap[row.email.toLowerCase()] || 'No Data';
+        const accuracyColor = accuracy !== 'No Data' && parseFloat(accuracy) < 75 ? 'red' : 'green';
         
         let rankDisplay = '';
         if (index === 0) rankDisplay = '🥇';
@@ -966,7 +966,7 @@ async function updateProductionTable() {
             <td style="text-align: left">${row.email || ''}</td>
             <td style="text-align: center">${row.status || ''}</td>
             <td style="text-align: center; color: ${accuracyColor}; font-weight: bold;">
-                ${accuracy}${accuracy !== 'N/A' ? '' : ''}
+                ${accuracy}
             </td>
             <td style="text-align: center">${row.taskCount || '0'}</td>
             <td style="text-align: center">${row.submittedCount || '0'}</td>
@@ -977,24 +977,24 @@ async function updateProductionTable() {
         tbody.appendChild(tr);
     });
 
-    // Update summary row with proper column alignment and positioning
+    // تحديث صف الملخص
     const summaryRow = document.createElement('tr');
     summaryRow.classList.add('summary-row');
     summaryRow.innerHTML = `
         <td colspan="5" style="text-align: right; font-weight: bold;">
-            Totals (Active Members: ${totals.activeMembers})
+            Totals (Active Members: ${filteredData.length})
         </td>
         <td style="text-align: center; font-weight: bold; background-color: rgba(255, 255, 255, 0.1);">
-            ${totals.taskCount}
+            ${filteredData.reduce((sum, row) => sum + row.taskCount, 0)}
         </td>
         <td style="text-align: center; font-weight: bold; background-color: rgba(255, 255, 255, 0.1);">
-            ${totals.submittedCount}
+            ${filteredData.reduce((sum, row) => sum + row.submittedCount, 0)}
         </td>
         <td style="text-align: center; font-weight: bold; background-color: rgba(255, 255, 255, 0.1);">
-            ${totals.skippedCount}
+            ${filteredData.reduce((sum, row) => sum + row.skippedCount, 0)}
         </td>
         <td style="text-align: center; font-weight: bold; background-color: rgba(255, 255, 255, 0.1);">
-            ${totals.startedCount}
+            ${filteredData.reduce((sum, row) => sum + row.startedCount, 0)}
         </td>
         <td></td>
     `;
@@ -1015,7 +1015,7 @@ function calculateTeamAverages() {
             };
         }
         
-        // اعتبار العضو ن��طًا إذا كان لديه مهام مقدمة
+        // اعتبار العضو نطًا إذا كان لديه مهام مقدمة
         if (member.submittedCount > 0) {
             teamStats[member.team].totalSubmitted += member.submittedCount;
             teamStats[member.team].totalTasks += member.taskCount;
@@ -1121,11 +1121,53 @@ function updateTeamTasksChart() {
         }
     });
 
+    // تحديث الرسم البياني للجودة
+    const qualityData = calculateTeamQuality();
+    const qualityLabels = Object.keys(qualityData);
+    const qualityValues = qualityLabels.map(team => qualityData[team].averageQuality);
+
+    const qualityCtx = document.getElementById('teamQualityChart'); // تأكد من وجود عنصر canvas للرسم البياني للجودة
+    if (qualityCtx) {
+        if (window.teamQualityChart instanceof Chart) {
+            window.teamQualityChart.destroy();
+        }
+
+        window.teamQualityChart = new Chart(qualityCtx, {
+            type: 'bar',
+            data: {
+                labels: qualityLabels,
+                datasets: [{
+                    label: 'Average Quality',
+                    data: qualityValues,
+                    backgroundColor: teamColors.slice(0, qualityLabels.length)
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#ffffff' }
+                    },
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#ffffff' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
     // تحديث جدول المقاييس
-    updateTeamMetricsTable(teamData);
+    updateTeamMetricsTable(teamData, qualityData);
 }
 
-function updateTeamMetricsTable(teamData) {
+// تحديث دالة تحديث جدول المقاييس
+function updateTeamMetricsTable(teamData, qualityData) {
     const tbody = document.getElementById('teamMetricsBody');
     if (!tbody) {
         console.error('Team metrics table body not found');
@@ -1136,6 +1178,8 @@ function updateTeamMetricsTable(teamData) {
 
     teamData.forEach(item => {
         const row = document.createElement('tr');
+        const averageQuality = qualityData[item.team]?.averageQuality || 'N/A';
+        const averageAccuracy = qualityData[item.team]?.averageAccuracy || 'N/A'; // إضافة متوسط الدقة
         row.innerHTML = `
             <td>${item.team}</td>
             <td>${item.averageTasks}</td>
@@ -1145,6 +1189,8 @@ function updateTeamMetricsTable(teamData) {
             <td style="color: var(--primary-color); font-weight: bold;">
                 ${item.activeMembers} / ${item.totalMembers}
             </td>
+            <td>${averageQuality}%</td> <!-- إضافة عمود متوسط الجودة -->
+            <td>${averageAccuracy}%</td> <!-- إضافة عمود متوسط الدقة -->
         `;
         tbody.appendChild(row);
     });
@@ -1157,12 +1203,12 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             const tabId = this.dataset.tab;
             if (tabId === 'production-data') {
-                fetchProductionData();
+                fetchProductionData(); // Fetch all data when opening the tab
             }
         });
     });
     
-    // تحميل البيانات مباشرة إذا كان تاب Production Data نشطًا
+    // Load data directly if the Production Data tab is active
     if (document.querySelector('[data-tab="production-data"]').classList.contains('active')) {
         fetchProductionData();
     }
@@ -1320,3 +1366,58 @@ function updateMedals(topTasks, topQuality) {
         }
     });
 }
+
+// تحديث دالة حساب متوسط الجودة لكل فريق
+function calculateTeamQuality() {
+    const qualityData = {};
+    
+    // تأكد من أن productionData تحتوي على البيانات الصحيحة
+    productionData.forEach(member => {
+        console.log(member); // طباعة كل عضو للتحقق من القيم
+        if (!qualityData[member.team]) {
+            qualityData[member.team] = {
+                totalQuality: 0,
+                activeMembers: 0,
+                totalAccuracy: 0 // إضافة متغير لتخزين مجموع الدقة
+            };
+        }
+        
+        const quality = parseFloat(member.quality) || 0; // تأكد من وجود دالة للحصول على الجودة
+        const accuracy = member.accuracy === "No Data" ? 0 : parseFloat(member.accuracy); // تأكد من وجود دالة للحصول على الدقة
+        
+        // حساب الجودة فقط إذا كانت أكبر من 0
+        if (quality > 0) {
+            qualityData[member.team].totalQuality += quality;
+            qualityData[member.team].activeMembers++;
+        }
+        
+        // إذا كان لدى العضو دقة أكبر من 1، أضفها إلى المجموع
+        if (accuracy > 1) {
+            qualityData[member.team].totalAccuracy += accuracy; // إضافة الدقة للمجموع
+        }
+    });
+
+    // حساب المتوسطات
+    Object.keys(qualityData).forEach(team => {
+        const stats = qualityData[team];
+        stats.averageQuality = stats.activeMembers > 0 
+            ? (stats.totalQuality / stats.activeMembers).toFixed(2) 
+            : 0;
+
+        // إضافة تعليقات في الكونسول لسبب N/A%
+        if (stats.activeMembers === 0) {
+            console.log(`Average Accuracy for team ${team} is N/A% because there are no active members with quality data.`);
+        } else if (stats.totalAccuracy === 0) {
+            console.log(`Average Accuracy for team ${team} is N/A% because no members have accuracy data greater than 1.`);
+        } else {
+            stats.averageAccuracy = (stats.totalAccuracy / stats.activeMembers).toFixed(2); // حساب متوسط الدقة
+        }
+
+        // تسجيل معلومات إضافية للمساعدة في تحديد المشكلة
+        console.log(`Team: ${team}, Active Members: ${stats.activeMembers}, Total Accuracy: ${stats.totalAccuracy}`);
+    });
+
+    return qualityData;
+}
+
+//
