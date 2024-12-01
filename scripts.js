@@ -14,8 +14,8 @@ const PRODUCTION_SHEET_ID = '1LBz_Fn8T5I5n3e_UuqLSN8xYpnL1TBkLGTIjL1LF5QM';
 const PRODUCTION_SHEET_NAME = 'MORNING';
 
 // Add new constants
-const QUALITY_SHEET_ID = '137kQKHlGVJaditi2Tw6tMNz_as1wnXGl2meY3yt9gHk';
-const QUALITY_SHEET_NAME = 'Overall Quality';
+const QUALITY_SHEET_ID = '14JdMNnhvCYmEVxRrnQitz5sjYQenh1pgcrE9Aw_pKR8';
+const QUALITY_SHEET_NAME = 'MORNING';
 
 document.addEventListener('DOMContentLoaded', () => {
     initialize();
@@ -32,7 +32,7 @@ async function fetchGoogleSheetData(sheetName, range) {
 
     try {
         const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}!${range}?key=${apiKey}`);
-
+        
         if (!response.ok) {
             const errorData = await response.json();
             console.error("Error fetching data:", errorData);
@@ -40,7 +40,7 @@ async function fetchGoogleSheetData(sheetName, range) {
         }
 
         const data = await response.json();
-
+        
         if (!data || !data.values || !Array.isArray(data.values)) {
             console.error("Invalid data received:", data);
             return [];
@@ -218,7 +218,7 @@ async function updateTable(team) {
 
     // Update stats only if elements exist
     const performanceStats = calculateTeamStats(trackingData);
-
+    
     // Update Top Team - Add null checks
     const topTeamText = document.getElementById('topTeamText');
     const teamRanking = document.getElementById('teamRanking');
@@ -230,7 +230,7 @@ async function updateTable(team) {
     if (topTeamText) {
         topTeamText.textContent = topTeam ? topTeam[0] : "N/A";
     }
-
+    
     // Update Team Ranking
     if (teamRanking) {
         teamRanking.textContent = 
@@ -288,7 +288,7 @@ async function updateTable(team) {
 
 function showRandomBalloons() {
     const balloonCount = Math.floor(Math.random() * 21) + 20;
-
+    
     // إزالة البالونات القديمة
     const existingBalloons = document.querySelectorAll('.balloon');
     existingBalloons.forEach(balloon => balloon.remove());
@@ -324,7 +324,7 @@ function showRandomBalloons() {
             const balloon = document.createElement('div');
             balloon.className = 'balloon';
             balloon.innerHTML = symbols[Math.floor(Math.random() * symbols.length)];
-
+            
             const startX = Math.random() * (viewportWidth - 40) + 20;
             const startY = viewportHeight + 10;
 
@@ -444,7 +444,7 @@ function calculateIndividualPerformance() {
     }
 
     const rows = Array.from(teamTableBody.getElementsByTagName("tr"));
-
+    
     // Skip the summary row at the end
     const dataRows = rows.slice(0, -1);
 
@@ -482,7 +482,7 @@ function calculateTeamStats(data) {
     }
 
     const stats = {};
-
+    
     Array.from(teamNames).forEach(team => {
         const teamData = data.filter(row => row[1] === team);
         const activeMembers = teamData.filter(member => 
@@ -500,7 +500,7 @@ function calculateTeamStats(data) {
             activeMembers: activeMembers.length
         };
     });
-
+    
     return stats;
 }
 
@@ -525,7 +525,7 @@ function initializeTeamSlider() {
 
     // تحديث إحصائيات الفرق
     const teamsStats = {};
-
+    
     teamNames.forEach(team => {
         const teamData = trackingData.filter(row => row[1] === team);
         const activeMembers = teamData.filter(member => 
@@ -535,7 +535,7 @@ function initializeTeamSlider() {
         const totalTasks = activeMembers.reduce((sum, member) => 
             sum + (parseFloat(member[13]) || 0), 0
         );
-
+        
         const averageQuality = calculateAverageQuality(teamData, 12);
 
         teamsStats[team] = {
@@ -549,7 +549,7 @@ function initializeTeamSlider() {
         const stats = teamsStats[team];
         const teamCard = document.createElement('div');
         teamCard.className = 'team-card';
-
+        
         teamCard.innerHTML = `
             <h3>${team}</h3>
             <div class="team-stats">
@@ -583,13 +583,13 @@ function initializeTeamSlider() {
 // تأكد من أن هذه الدالة موجودة وتعمل بشكل صحيح
 function calculateAverageQuality(teamData, columnIndex) {
     if (!teamData || !teamData.length) return 0;
-
+    
     const validQualityScores = teamData
         .map(row => parseFloat(row[columnIndex]))
         .filter(score => !isNaN(score) && score > 0);
 
     if (!validQualityScores.length) return 0;
-
+    
     const sum = validQualityScores.reduce((acc, score) => acc + score, 0);
     return sum / validQualityScores.length;
 }
@@ -618,7 +618,7 @@ function initializeTabs() {
             if (targetContent) {
                 targetContent.style.display = 'block';
                 targetContent.classList.add('active');
-
+                
                 // إذا كان التاب هو metrics، قم بتحديث الرسوم البيانية
                 if (button.dataset.tab === 'metrics') {
                     setTimeout(() => {
@@ -634,7 +634,7 @@ function updateMetricsCharts() {
     // تأكد من وجود العناصر
     const qualityCanvas = document.getElementById('qualityComparisonChart');
     const tasksCanvas = document.getElementById('tasksComparisonChart');
-
+    
     if (!qualityCanvas || !tasksCanvas) {
         console.error('Canvas elements not found');
         return;
@@ -642,7 +642,7 @@ function updateMetricsCharts() {
 
     const qualityCtx = qualityCanvas.getContext('2d');
     const tasksCtx = tasksCanvas.getContext('2d');
-
+    
     // تدمير ارسوم البيانية القديمة إذا كانت موجودة
     if (qualityChart) {
         qualityChart.destroy();
@@ -658,7 +658,7 @@ function updateMetricsCharts() {
     }
 
     const teamsData = {};
-
+    
     // جمع البيانات لكل فريق
     Array.from(teamNames).forEach(team => {
         const teamData = trackingData.filter(row => row[1] === team);
@@ -805,27 +805,27 @@ document.addEventListener('DOMContentLoaded', function() {
     // الحصول على بيانات الجدول
     const table = document.querySelector('table');
     const teamData = {};
-
+    
     // تجميع بيانات الفرق من الجدول
     table.querySelectorAll('tr').forEach((row, index) => {
         if (index === 0) return; // تخطي صف العناوين
-
+        
         const columns = row.querySelectorAll('td');
         const teamName = columns[0].textContent;
         const avgTasks = columns[1].textContent;
         const avgQuality = columns[2].textContent;
-
+        
         teamData[teamName] = {
             avgTasks,
             avgQuality
         };
     });
-
+    
     // إضافة إحصائيات لكل بطاقة فريق
     document.querySelectorAll('.team-card').forEach(card => {
         const teamName = card.querySelector('h3').textContent;
         const data = teamData[teamName];
-
+        
         if (data) {
             const stats = document.createElement('div');
             stats.className = 'team-stats';
@@ -890,7 +890,7 @@ async function fetchProductionData() {
         const response = await fetch(`https://docs.google.com/spreadsheets/d/${PRODUCTION_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${PRODUCTION_SHEET_NAME}`);
         const text = await response.text();
         const data = JSON.parse(text.substring(47).slice(0, -2));
-
+        
         // تحويل البيانات إلى تنسيق أكثر سهولة للاستخدام
         productionData = data.table.rows.map(row => ({
             name: row.c[0]?.v || '',
@@ -918,17 +918,17 @@ async function updateProductionTable() {
     if (!tbody) return;
 
     tbody.innerHTML = '';
-
+    
     // Fetch accuracy data
     const accuracyMap = await fetchAccuracyData();
-
+    
     // Sort productionData by accuracy instead of taskCount
     const sortedData = [...productionData].sort((a, b) => {
         const accuracyA = parseFloat(accuracyMap[a.email.toLowerCase()] || '0');
         const accuracyB = parseFloat(accuracyMap[b.email.toLowerCase()] || '0');
         return accuracyB - accuracyA;
     });
-
+    
     // Calculate totals
     const totals = productionData.reduce((acc, row) => {
         acc.taskCount += row.taskCount || 0;
@@ -952,12 +952,12 @@ async function updateProductionTable() {
         const accuracy = accuracyMap[row.email.toLowerCase()] || 'N/A';
         const accuracyValue = accuracy !== 'N/A' ? parseFloat(accuracy) : 0;
         const accuracyColor = accuracyValue < 75 ? 'red' : 'green';
-
+        
         let rankDisplay = '';
         if (index === 0) rankDisplay = '🥇';
         else if (index === 1) rankDisplay = '🥈';
         else if (index === 2) rankDisplay = '🥉';
-
+        
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td style="text-align: center">${index + 1} ${rankDisplay}</td>
@@ -966,7 +966,7 @@ async function updateProductionTable() {
             <td style="text-align: left">${row.email || ''}</td>
             <td style="text-align: center">${row.status || ''}</td>
             <td style="text-align: center; color: ${accuracyColor}; font-weight: bold;">
-                ${accuracy}${accuracy !== 'N/A' ? '%' : ''}
+                ${accuracy}${accuracy !== 'N/A' ? '' : ''}
             </td>
             <td style="text-align: center">${row.taskCount || '0'}</td>
             <td style="text-align: center">${row.submittedCount || '0'}</td>
@@ -1004,7 +1004,7 @@ async function updateProductionTable() {
 // تحدث دا حساب متوسط المهام لكل فريق
 function calculateTeamAverages() {
     const teamStats = {};
-
+    
     productionData.forEach(member => {
         if (!teamStats[member.team]) {
             teamStats[member.team] = {
@@ -1014,7 +1014,7 @@ function calculateTeamAverages() {
                 members: []
             };
         }
-
+        
         // اعتبار العضو ن��طًا إذا كان لديه مهام مقدمة
         if (member.submittedCount > 0) {
             teamStats[member.team].totalSubmitted += member.submittedCount;
@@ -1045,11 +1045,11 @@ function updateTeamTasksChart() {
 
     // تجميع البيانات حسب الفريق
     const teamStats = {};
-
+    
     productionData.forEach(row => {
         const team = row.team;
         const taskCount = parseFloat(row.taskCount) || 0;
-
+        
         if (!teamStats[team]) {
             teamStats[team] = {
                 totalTasks: 0,
@@ -1057,9 +1057,9 @@ function updateTeamTasksChart() {
                 totalMembers: 0
             };
         }
-
+        
         teamStats[team].totalMembers++;
-
+        
         // اعتبار العضو نشطًا فقط إذا كان لديه تاسكات أكثر من صفر
         if (taskCount > 0) {
             teamStats[team].totalTasks += taskCount;
@@ -1161,7 +1161,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-
+    
     // تحميل البيانات مباشرة إذا كان تاب Production Data نشطًا
     if (document.querySelector('[data-tab="production-data"]').classList.contains('active')) {
         fetchProductionData();
@@ -1180,8 +1180,8 @@ async function fetchAccuracyData() {
         // Create a map of email to accuracy
         const accuracyMap = {};
         data.values.forEach(row => {
-            if (row[4] && row[10]) { // Email is in column E (index 4), Accuracy in column I (index 10)
-                accuracyMap[row[4].toLowerCase()] = row[10]; // Store accuracy value
+            if (row[1] && row[2]) { // Email is in column E (index 4), Accuracy in column I (index 8)
+                accuracyMap[row[1].toLowerCase()] = row[2]; // Store accuracy value
             }
         });
         return accuracyMap;
@@ -1320,4 +1320,3 @@ function updateMedals(topTasks, topQuality) {
         }
     });
 }
-~
