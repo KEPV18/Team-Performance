@@ -901,10 +901,10 @@ async function fetchProductionData() {
             status: row.c[3]?.v || '',
             accuracy: row.c[4]?.v || '', // تأكد من أن الدقة هنا
             taskCount: parseInt(row.c[5]?.v) || 0,
-            submittedCount: parseInt(row.c[6]?.v) || 0,
-            skippedCount: parseInt(row.c[7]?.v) || 0,
-            startedCount: parseInt(row.c[8]?.v) || 0,
-            date: row.c[9]?.f || row.c[9]?.v || ''
+            submittedCount: parseInt(row.c[5]?.v) || 0,
+            skippedCount: parseInt(row.c[6]?.v) || 0,
+            startedCount: parseInt(row.c[7]?.v) || 0,
+            date: row.c[8]?.f || row.c[8]?.v || ''
         })).filter(row => row.name && row.team); // تصفية الصفوف الفارغة
 
         console.log(productionData); // طباعة البيانات للتحقق منها
