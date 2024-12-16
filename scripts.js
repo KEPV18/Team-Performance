@@ -1226,8 +1226,8 @@ async function fetchAccuracyData() {
         // Create a map of email to accuracy
         const accuracyMap = {};
         data.values.forEach(row => {
-            if (row[1] && row[2]) { // Email is in column E (index 4), Accuracy in column I (index 8)
-                accuracyMap[row[1].toLowerCase()] = row[2]; // Store accuracy value
+            if (row[2] && row[3]) { // Email is in column E (index 4), Accuracy in column I (index 8)
+                accuracyMap[row[2].toLowerCase()] = row[3]; // Store accuracy value
             }
         });
         return accuracyMap;
