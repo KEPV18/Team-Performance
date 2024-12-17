@@ -155,13 +155,18 @@
                     <tbody id="productionTableBody">
                     </tbody>
                 </table>
-
+                <h1>Team quality Count Average</h1>
+                <div class="chart-container" style="height: 300px; margin-top: 20px;">
+                    <canvas id="teamQualityChart"></canvas>
+                </div>
+                
                 <div class="charts-grid">
                     <h1>Team Task Count Average</h1>
                     <div class="chart-container">
                         <canvas id="teamTasksChart"></canvas>
                     </div>
                     <div class="metrics-table-container">
+                        
                         <table class="metrics-table">
                             <thead>
                                 <tr>
@@ -169,7 +174,7 @@
                                     <th>Average Tasks</th>
                                     <th>Total Tasks</th>
                                     <th>Active Members</th>
-                                    <th>Average Accuracy</th>
+                                    <th>Average Quality</th>
                                 </tr>
                             </thead>
                             <tbody id="teamMetricsBody">
@@ -197,5 +202,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="scripts.js"></script>
+    <script src="productionData.js"></script>
 </body>
 </html>
